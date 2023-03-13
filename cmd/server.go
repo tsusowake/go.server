@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
+
+	"github.com/tsusowake/go.server/internal/server"
 )
 
 var (
@@ -19,8 +21,19 @@ var (
 
 func RunServer() error {
 	fmt.Println("Start: server...")
-	defer fmt.Println("End: ...server")
-	fmt.Println("wait for 3 sec")
-	time.Sleep(3 * time.Second)
-	return nil
+	defer func() {
+		fmt.Println("End: ...server")
+	}()
+
+	ctx := context.Background()
+
+	srv, err := server.NewServer(ctx)
+	if err != nil {
+		return err
+	}
+	// TODO impl interrup
+	// defer func() error {
+	// 	return srv.RedisClient.Close()
+	// }()
+	return srv.Start("1323")
 }
