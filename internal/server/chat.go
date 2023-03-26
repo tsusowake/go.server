@@ -10,7 +10,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// TODO sse
 func (s *server) connectChat(ectx echo.Context) error {
 	ctx := FromEchoContext(ectx)
 
@@ -33,7 +32,6 @@ func (s *server) connectChat(ectx echo.Context) error {
 
 	switch iface.(type) {
 	case *redis.Subscription:
-		// subscribe succeeded
 		s.Logger.Info("connect: room")
 	// case *redis.Message:
 	// 	// received first message
@@ -45,12 +43,9 @@ func (s *server) connectChat(ectx echo.Context) error {
 
 	ch := sub.Channel()
 	go func() {
-		for {
-			select {
-			case msg := <-ch:
-				fmt.Fprintf(writer, "message: %s\n", msg.String())
-				flusher.Flush()
-			}
+		for msg := range ch {
+			fmt.Fprintf(writer, "message: %s\n", msg.String())
+			flusher.Flush()
 		}
 	}()
 	<-req.Context().Done()

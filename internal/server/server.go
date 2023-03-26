@@ -76,7 +76,7 @@ func (s *server) Stop() error {
 func (s *server) setupHandlers(e *echo.Echo) {
 	// /rooms
 	e.POST("/rooms", s.createRoom)
-	// TODO resource path
+	// TODO channel の subscribe は別サーバーが良いかも
 	e.GET("/rooms/chat", s.connectChat)
 	e.POST("/rooms/chat/messages", s.sendMessage)
 }
