@@ -11,6 +11,8 @@ import (
 )
 
 func (s *server) connectChat(ectx echo.Context) error {
+	s.Logger.Info("connect req received...")
+
 	ctx := FromEchoContext(ectx)
 
 	writer := ectx.Response().Writer
@@ -23,6 +25,7 @@ func (s *server) connectChat(ectx echo.Context) error {
 	writer.Header().Set("Content-Type", "text/event-stream")
 	writer.Header().Set("Cache-Control", "no-cache")
 	writer.Header().Set("Connection", "keep-alive")
+	writer.Header().Set("Access-Control-Allow-Origin", "*")
 
 	sub := s.RedisClient.Subscribe(ctx, "test.channel.1")
 	iface, err := sub.Receive(ctx)
@@ -43,12 +46,16 @@ func (s *server) connectChat(ectx echo.Context) error {
 
 	ch := sub.Channel()
 	go func() {
-		for msg := range ch {
-			fmt.Fprintf(writer, "message: %s\n", msg.String())
-			flusher.Flush()
+		for {
+			select {
+			case msg := <-ch:
+				fmt.Fprintf(writer, "message: %s\n", msg.String())
+				flusher.Flush()
+			case <-req.Context().Done():
+				return
+			}
 		}
 	}()
-	<-req.Context().Done()
 	return nil
 }
 

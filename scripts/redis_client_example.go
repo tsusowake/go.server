@@ -3,8 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-
-	"github.com/tsusowake/go.server/internal/pkg/redis"
+	"github.com/tsusowake/go.server/pkg/redis"
 )
 
 func main() {

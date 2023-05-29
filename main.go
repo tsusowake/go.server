@@ -17,7 +17,7 @@ func main() {
 	case nil:
 		os.Exit(0)
 	case context.Canceled:
-		fmt.Println("canceld")
+		fmt.Println("canceled")
 		os.Exit(0)
 	default:
 		fmt.Printf("error: %s\n", err)
