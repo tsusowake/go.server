@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	sq "github.com/Masterminds/squirrel"
+	"github.com/jmoiron/sqlx"
 	"github.com/tsusowake/go.server/internal/database/entity"
 	"github.com/tsusowake/go.server/pkg/database"
 )
@@ -23,7 +24,8 @@ var userColumns = []string{
 }
 
 type user struct {
-	conn *database.Connector
+	conn        *database.Connector
+	userSetting *userSetting
 }
 
 func (u *user) GetByID(ctx context.Context, id string) (*entity.User, error) {
@@ -39,4 +41,51 @@ func (u *user) GetByID(ctx context.Context, id string) (*entity.User, error) {
 		return nil, err
 	}
 	return &dest, nil
+}
+
+func (u *user) Create(ctx context.Context, user *entity.User) error {
+	// TODO UUID をもう少しいい感じにする
+	// 43f3ece7-d869-48a4-9487-6e000ff4c663
+	id, err := u.conn.UUID()
+	if err != nil {
+		return err
+	}
+	user.ID = id.String()
+	now := u.conn.Now()
+	user.CreatedAt = now
+	user.UpdatedAt = now
+
+	_, err = u.conn.Begin(ctx, func(txCtx context.Context, tx *sqlx.Tx) (any, error) {
+		sql, args, err := sq.Insert(userTable).
+			Columns("id", "password", "email", "status", "created_at", "updated_at").
+			Values(
+				user.ID,
+				user.Password,
+				user.Email,
+				user.Status,
+				user.CreatedAt,
+				user.UpdatedAt,
+			).
+			ToSql()
+		if err != nil {
+			return nil, err
+		}
+		if _, err := tx.ExecContext(txCtx, sql, args...); err != nil {
+			return nil, err
+		}
+		setting := &entity.UserSetting{
+			UserID:    user.ID,
+			Language:  entity.LanguageJa,
+			CreatedAt: now,
+			UpdatedAt: now,
+		}
+		if err := u.userSetting.CreateTx(txCtx, tx, setting); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -7,6 +7,7 @@ import (
 
 func NewDatabase(conn *db.Connector) *database.Database {
 	return &database.Database{
-		User: &user{conn: conn},
+		User:        &user{conn: conn},
+		UserSetting: &userSetting{conn: conn},
 	}
 }

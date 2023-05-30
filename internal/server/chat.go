@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/tsusowake/go.server/pkg/echoutil"
 	"net/http"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 func (s *server) connectChat(ectx echo.Context) error {
 	s.Logger.Info("connect req received...")
 
-	ctx := FromEchoContext(ectx)
+	ctx := echoutil.FromEchoContext(ectx)
 
 	writer := ectx.Response().Writer
 	flusher, ok := writer.(http.Flusher)
@@ -60,7 +61,7 @@ func (s *server) connectChat(ectx echo.Context) error {
 }
 
 func (s *server) createRoom(ectx echo.Context) error {
-	ctx := FromEchoContext(ectx)
+	ctx := echoutil.FromEchoContext(ectx)
 	if err := s.RedisClient.Publish(ctx, "test.channel.1", "test.publish"); err != nil {
 		return err
 	}
@@ -69,7 +70,7 @@ func (s *server) createRoom(ectx echo.Context) error {
 }
 
 func (s *server) sendMessage(ectx echo.Context) error {
-	ctx := FromEchoContext(ectx)
+	ctx := echoutil.FromEchoContext(ectx)
 	msg := fmt.Sprintf("message.now:%s", time.Now().Format(time.RFC3339))
 	if err := s.RedisClient.Publish(ctx, "test.channel.1", msg); err != nil {
 		return err

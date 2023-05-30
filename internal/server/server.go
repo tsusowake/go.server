@@ -57,7 +57,7 @@ func Run(ctx context.Context) error {
 		AllowOrigins: []string{
 			// TODO
 		},
-		// AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		// AllowHeaders: []string{echoutil.HeaderOrigin, echoutil.HeaderContentType, echoutil.HeaderAccept},
 		AllowMethods: []string{
 			http.MethodOptions,
 			http.MethodGet,
@@ -124,6 +124,8 @@ func (s *server) setupHandlers(e *echo.Echo) {
 
 	// /users
 	e.GET("/user/:id", s.getUser)
+	// TODO 副作用を消す
+	e.GET("/user/create", s.createUser)
 
 	// /rooms
 	e.POST("/rooms", s.createRoom)
