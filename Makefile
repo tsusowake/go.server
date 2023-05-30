@@ -1,3 +1,11 @@
+.PHONY: build
+build:
+	go build -o .dist/app main.go
+
+.PHONY: build
+build-race:
+	go build -race -o .dist/app-race main.go
+
 .PHONY: clean
 clean:
 	rm -rf .dist

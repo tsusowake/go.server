@@ -1,6 +1,6 @@
 module github.com/tsusowake/go.server
 
-go 1.19
+go 1.20
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
