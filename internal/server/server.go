@@ -3,11 +3,11 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/go-playground/validator"
 	"github.com/go-sql-driver/mysql"
 	db "github.com/tsusowake/go.server/internal/database"
 	mysql2 "github.com/tsusowake/go.server/internal/database/mysql"
 	"github.com/tsusowake/go.server/pkg/database"
+	"github.com/tsusowake/go.server/pkg/echoutil"
 	"github.com/tsusowake/go.server/pkg/logger"
 	"github.com/tsusowake/go.server/pkg/redis"
 	ptime "github.com/tsusowake/go.server/pkg/time"
@@ -30,7 +30,7 @@ type server struct {
 func Run(ctx context.Context) error {
 	e := echo.New()
 
-	logger, err := logger.NewLogger(zapcore.DebugLevel)
+	l, err := logger.NewLogger(zapcore.DebugLevel)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func Run(ctx context.Context) error {
 		LogUserAgent: true,
 		LogStatus:    true,
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-			logger.Info("request",
+			l.Info("request",
 				zap.String("URI", v.URI),
 				zap.Int("status", v.Status),
 			)
@@ -68,9 +68,7 @@ func Run(ctx context.Context) error {
 	}))
 	e.Use(middleware.Recover())
 	e.HTTPErrorHandler = errorHandler
-	e.Validator = &CustomValidator{
-		validator: validator.New(),
-	}
+	echoutil.UseCustomValidator(e)
 
 	rc := redis.NewRedisClient(ctx, "localhost:6379", "")
 
@@ -87,21 +85,23 @@ func Run(ctx context.Context) error {
 		Loc:       loc,
 	}
 	mconf = database.WithParseTime(mconf)
-	db, err := database.Open(mconf, logger)
+	dbc, err := database.Open(mconf, l)
 	if err != nil {
 		return err
 	}
-	defer db.DB.Close()
+	defer func() {
+		_ = dbc.DB.Close()
+	}()
 	// See "Important settings" section.
-	db.DB.SetConnMaxLifetime(time.Minute * 3)
-	db.DB.SetMaxOpenConns(10)
-	db.DB.SetMaxIdleConns(10)
+	dbc.DB.SetConnMaxLifetime(time.Minute * 3)
+	dbc.DB.SetMaxOpenConns(10)
+	dbc.DB.SetMaxIdleConns(10)
 
 	s := &server{
 		EchoServer:  e,
-		Logger:      logger,
+		Logger:      l,
 		RedisClient: rc,
-		Database:    mysql2.NewDatabase(db),
+		Database:    mysql2.NewDatabase(dbc),
 	}
 	s.setupHandlers(e)
 	return s.Start("1323")

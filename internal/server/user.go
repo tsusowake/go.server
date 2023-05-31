@@ -29,10 +29,15 @@ func (s *server) getUser(ctx echo.Context) error {
 }
 
 func (s *server) createUser(ctx echo.Context) error {
+	req, err := request.NewCreateUser(ctx)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, nil)
+	}
+
 	c := echoutil.FromEchoContext(ctx)
 	user := &entity.User{
-		Password: "password.3",
-		Email:    "user-3@mail.com",
+		Password: req.Password,
+		Email:    req.Email,
 		Status:   entity.UserStatusActive,
 	}
 	if err := s.Database.User.Create(c, user); err != nil {

@@ -1,4 +1,4 @@
-package server
+package echoutil
 
 import (
 	"github.com/go-playground/validator"
@@ -16,4 +16,8 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return nil
+}
+
+func UseCustomValidator(e *echo.Echo) {
+	e.Validator = &CustomValidator{validator: validator.New()}
 }
