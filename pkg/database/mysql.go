@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/go-sql-driver/mysql"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/tsusowake/go.server/pkg/uuid"
 	"go.uber.org/zap"
 	"time"
 )
@@ -15,7 +15,7 @@ type Connector struct {
 	DB     *sqlx.DB
 	Logger *zap.Logger
 	Now    func() time.Time
-	UUID   func() (uuid.UUID, error)
+	UUID   func() (string, error)
 }
 
 func Open(conf *mysql.Config, logger *zap.Logger) (*Connector, error) {
@@ -30,7 +30,7 @@ func Open(conf *mysql.Config, logger *zap.Logger) (*Connector, error) {
 		DB:     db,
 		Logger: logger,
 		Now:    time.Now,
-		UUID:   uuid.NewRandom,
+		UUID:   uuid.NewURLSafeString,
 	}
 	return conn, nil
 }

@@ -31,8 +31,8 @@ func (s *server) getUser(ctx echo.Context) error {
 func (s *server) createUser(ctx echo.Context) error {
 	c := echoutil.FromEchoContext(ctx)
 	user := &entity.User{
-		Password: "password.2",
-		Email:    "user-2@mail.com",
+		Password: "password.3",
+		Email:    "user-3@mail.com",
 		Status:   entity.UserStatusActive,
 	}
 	if err := s.Database.User.Create(c, user); err != nil {

@@ -44,13 +44,11 @@ func (u *user) GetByID(ctx context.Context, id string) (*entity.User, error) {
 }
 
 func (u *user) Create(ctx context.Context, user *entity.User) error {
-	// TODO UUID をもう少しいい感じにする
-	// 43f3ece7-d869-48a4-9487-6e000ff4c663
 	id, err := u.conn.UUID()
 	if err != nil {
 		return err
 	}
-	user.ID = id.String()
+	user.ID = id
 	now := u.conn.Now()
 	user.CreatedAt = now
 	user.UpdatedAt = now
