@@ -59,13 +59,16 @@ func (c *Connector) Rollback(tx *sqlx.Tx) {
 	}
 }
 
-func (c *Connector) Begin(
+// DoTx
+// see https://github.com/golang/go/issues/49085
+func DoTx[T any](
 	ctx context.Context,
-	txFunc func(ctx context.Context, tx *sqlx.Tx) (any, error),
-) (any, error) {
+	c *Connector,
+	fn func(ctx context.Context, tx *sqlx.Tx) (T, error),
+) (ret T, err error) {
 	tx, err := c.DB.BeginTxx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return ret, err
 	}
 	defer func() {
 		if r := recover(); r != nil {
@@ -73,13 +76,13 @@ func (c *Connector) Begin(
 			panic(r)
 		}
 	}()
-	ret, err := txFunc(ctx, tx)
+	ret, err = fn(ctx, tx)
 	if err != nil {
 		c.Rollback(tx)
-		return nil, err
+		return ret, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return ret, err
 	}
 	return ret, nil
 }

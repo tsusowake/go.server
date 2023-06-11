@@ -53,7 +53,7 @@ func (u *user) Create(ctx context.Context, user *entity.User) error {
 	user.CreatedAt = now
 	user.UpdatedAt = now
 
-	_, err = u.conn.Begin(ctx, func(txCtx context.Context, tx *sqlx.Tx) (any, error) {
+	_, err = database.DoTx(ctx, u.conn, func(txCtx context.Context, tx *sqlx.Tx) (any, error) {
 		sql, args, err := sq.Insert(userTable).
 			Columns("id", "password", "email", "status", "created_at", "updated_at").
 			Values(
