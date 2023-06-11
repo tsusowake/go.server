@@ -7,7 +7,7 @@ import (
 	"github.com/tsusowake/go.server/internal/database/entity"
 	"github.com/tsusowake/go.server/internal/server/request"
 	"github.com/tsusowake/go.server/internal/server/response"
-	"github.com/tsusowake/go.server/pkg/echoutil"
+	"github.com/tsusowake/go.server/util/echoutil"
 	"go.uber.org/zap"
 	"net/http"
 )

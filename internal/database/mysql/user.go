@@ -5,7 +5,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/tsusowake/go.server/internal/database/entity"
-	"github.com/tsusowake/go.server/pkg/database"
+	"github.com/tsusowake/go.server/util/database"
 )
 
 const (

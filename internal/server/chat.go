@@ -3,7 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
-	"github.com/tsusowake/go.server/pkg/echoutil"
+	"github.com/tsusowake/go.server/util/echoutil"
 	"net/http"
 	"time"
 

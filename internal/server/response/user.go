@@ -2,7 +2,7 @@ package response
 
 import (
 	"github.com/tsusowake/go.server/internal/database/entity"
-	"github.com/tsusowake/go.server/pkg/conv"
+	"github.com/tsusowake/go.server/util/conv"
 	"time"
 )
 

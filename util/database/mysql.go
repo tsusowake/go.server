@@ -6,7 +6,7 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/tsusowake/go.server/pkg/uuid"
+	"github.com/tsusowake/go.server/util/uuid"
 	"go.uber.org/zap"
 	"time"
 )

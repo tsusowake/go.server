@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"github.com/tsusowake/go.server/pkg/echoutil"
+	"github.com/tsusowake/go.server/util/echoutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
