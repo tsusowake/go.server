@@ -17,3 +17,7 @@ lint:
 .PHONY: test
 test:
 	go test -cover ./...
+
+.PHONY: schemaspy
+schemaspy:
+	docker compose -f compose.schemaspy.yaml up -d

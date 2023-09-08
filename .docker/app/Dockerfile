@@ -1,7 +1,7 @@
 # build app
 FROM golang:1.20.4 AS build
 ARG GITHUB_ACCESS_TOKEN
-COPY . /app
+COPY ../.. /app
 WORKDIR /app
 
 RUN echo "machine github.com login $GITHUB_ACCESS_TOKEN" > ~/.netrc \

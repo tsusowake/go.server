@@ -7,6 +7,7 @@ import (
 
 func TestNewURLSafeString(t *testing.T) {
 	got, err := NewURLSafeString()
+	print(got)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, got)
 }
