@@ -21,3 +21,5 @@ type User interface {
 type UserSetting interface {
 	CreateTx(ctx context.Context, tx *sqlx.Tx, setting *entity.UserSetting) error
 }
+
+// TODO contracts
