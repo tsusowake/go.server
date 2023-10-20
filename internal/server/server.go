@@ -53,6 +53,11 @@ func Run(ctx context.Context) error {
 			return nil
 		},
 	}))
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			cc := &
+		}
+	})
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{
 			// TODO
