@@ -3,13 +3,14 @@ package server
 import (
 	"database/sql"
 	"errors"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
-	"github.com/tsusowake/go.server/internal/database/entity"
+	"go.uber.org/zap"
+
 	"github.com/tsusowake/go.server/internal/server/request"
 	"github.com/tsusowake/go.server/internal/server/response"
 	"github.com/tsusowake/go.server/util/echoutil"
-	"go.uber.org/zap"
-	"net/http"
 )
 
 func (s *server) getUser(ctx echo.Context) error {
@@ -28,21 +29,21 @@ func (s *server) getUser(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response.ToUser(u))
 }
 
-func (s *server) createUser(ctx echo.Context) error {
-	req, err := request.NewCreateUser(ctx)
-	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, nil)
-	}
-
-	c := echoutil.FromEchoContext(ctx)
-	user := &entity.User{
-		Password: req.Password,
-		Email:    req.Email,
-		Status:   entity.UserStatusActive,
-	}
-	if err := s.Database.User.Create(c, user); err != nil {
-		s.Logger.Error("failed to create user", zap.Error(err))
-		return err
-	}
-	return nil
-}
+//func (s *server) createUser(ctx echo.Context) error {
+//	req, err := request.NewCreateUser(ctx)
+//	if err != nil {
+//		return ctx.JSON(http.StatusBadRequest, nil)
+//	}
+//
+//	c := echoutil.FromEchoContext(ctx)
+//	user := &entity.User{
+//		Password: req.Password,
+//		Email:    req.Email,
+//		Status:   entity.UserStatusActive,
+//	}
+//	if err := s.Database.User.Create(c, user); err != nil {
+//		s.Logger.Error("failed to create user", zap.Error(err))
+//		return err
+//	}
+//	return nil
+//}

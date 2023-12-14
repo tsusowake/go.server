@@ -1,138 +1,41 @@
-# up
-
-CREATE TABLE IF NOT EXISTS `users`
+CREATE TABLE IF NOT EXISTS users
 (
-    `id`         VARCHAR(26) NOT NULL,
-    `created_at` TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci
-;
+    id         BIGSERIAL PRIMARY KEY,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
-CREATE TABLE IF NOT EXISTS `plans`
+create table if not exists user_locks
 (
-    `id`         VARCHAR(26)      NOT NULL,
-    `name`       VARCHAR(512)     NOT NULL,
-    `product_id` VARCHAR(512)     NOT NULL,
-    `platform`   TINYINT UNSIGNED NOT NULL,
-    `price`      INT UNSIGNED     NOT NULL,
-    `created_at` TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci
-;
+    user_id    bigint primary key,
+    lock_type  smallint  not null check (lock_type >= 0),
+    locked_at  timestamp not null,
+    created_at timestamp not null default current_timestamp,
+    updated_at timestamp not null default current_timestamp,
+    constraint user_locks_fk_user_id foreign key (user_id) references users (id)
+);
 
-CREATE TABLE IF NOT EXISTS `contracts`
+create table if not exists user_credentials
 (
-    `id`         VARCHAR(26)       NOT NULL,
-    `user_id`    VARCHAR(26)       NOT NULL,
-    `plan_id`    VARCHAR(26)       NOT NULL,
-    `type`       SMALLINT UNSIGNED NOT NULL,
-    `started_at` TIMESTAMP         NOT NULL,
-    `ended_at`   TIMESTAMP         NOT NULL,
-    `created_at` TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-    FOREIGN KEY (`plan_id`) REFERENCES `plans` (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci
-;
+    user_id    bigint primary key,
+    password   text      not null,
+    salt       text      not null,
+    created_at timestamp not null default current_timestamp,
+    updated_at timestamp not null default current_timestamp,
+    constraint user_credentials_fk_user_id foreign key (user_id) references users (id)
+);
 
-CREATE TABLE IF NOT EXISTS `premium_plan_contracts`
+create table if not exists user_emails
 (
-    `contract_id`     VARCHAR(26) NOT NULL,
-    `subscription_id` VARCHAR(26) NOT NULL,
-    `created_at`      TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`      TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`contract_id`),
-    FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci
-;
+    user_id    bigint primary key,
+    email      text      not null,
+    created_at timestamp not null default current_timestamp,
+    updated_at timestamp not null default current_timestamp,
+    constraint user_emails_fk_user_id foreign key (user_id) references users (id)
+);
+create index idx_user_emails_email on user_emails (email);
 
-CREATE TABLE IF NOT EXISTS `trial_plan_contracts`
-(
-    `contract_id` VARCHAR(26) NOT NULL,
-    `created_at`  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`contract_id`),
-    FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci
-;
-
-CREATE TABLE IF NOT EXISTS `contract_activities`
-(
-    `id`           VARCHAR(26)       NOT NULL,
-    `contract_id`  VARCHAR(26)       NOT NULL,
-    `activated_at` TIMESTAMP         NOT NULL,
-    `type`         SMALLINT UNSIGNED NOT NULL,
-    `created_at`   TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`   TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci
-;
-
-CREATE TABLE IF NOT EXISTS `contract_intents`
-(
-    `contract_activity_id` VARCHAR(26)  NOT NULL,
-    `price`                INT UNSIGNED NOT NULL,
-    `created_at`           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`contract_activity_id`),
-    FOREIGN KEY (`contract_activity_id`) REFERENCES `contract_activities` (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci
-;
-
-CREATE TABLE IF NOT EXISTS `contract_cancellations`
-(
-    `contract_activity_id` VARCHAR(26)       NOT NULL,
-    `reason`               SMALLINT UNSIGNED NOT NULL,
-    `created_at`           TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`           TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`contract_activity_id`),
-    FOREIGN KEY (`contract_activity_id`) REFERENCES `contract_activities` (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci
-;
-
-CREATE TABLE IF NOT EXISTS `contract_discounts`
-(
-    `contract_activity_id` VARCHAR(26)       NOT NULL,
-    `original_price`       INT UNSIGNED      NOT NULL,
-    `discount_amount`      INT UNSIGNED      NOT NULL,
-    `reason`               SMALLINT UNSIGNED NOT NULL,
-    `gross_price`          INT UNSIGNED      NOT NULL,
-    `created_at`           TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at`           TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`contract_activity_id`),
-    FOREIGN KEY (`contract_activity_id`) REFERENCES `contract_activities` (`id`)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci
-;
-
-# down
-DROP TABLE IF EXISTS `contract_discounts`;
-DROP TABLE IF EXISTS `contract_cancellations`;
-DROP TABLE IF EXISTS `contract_intents`;
-DROP TABLE IF EXISTS `contract_activities`;
-DROP TABLE IF EXISTS `trial_plan_contracts`;
-DROP TABLE IF EXISTS `premium_plan_contracts`;
-DROP TABLE IF EXISTS `contracts`;
-DROP TABLE IF EXISTS `plans`;
-DROP TABLE IF EXISTS `users`;
+-- down
+-- drop table if exists user_emails;
+-- drop table if exists user_credentials;
+-- drop table if exists user_locks;
+-- drop table if exists users;

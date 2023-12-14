@@ -44,7 +44,7 @@ docker build -t go/server:dev -f ./.docker/db/dev/Dockerfile .
 ```
 
 ```shell
-docker run -p 3306:3306 -d go/server:dev
+docker run -p 5432:5432 -d go/server:dev
 ```
 
 ### unittest
@@ -54,11 +54,11 @@ docker build -t go/server:unittest -f ./.docker/db/unittest/Dockerfile .
 ```
 
 ```shell
-docker run -p 3307:3306 -d go/server:unittest
+docker run -p 5433:5432 -d go/server:unittest
 ```
 
 ### create migration file
 
 ```shell
-migrate create -dir migrations/ -ext .sql sql_names
+migrate create -dir migrations/ -ext .sql ${sql_names}
 ```

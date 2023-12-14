@@ -1,0 +1,13 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "sqlc/query/**/*.sql"
+    schema: "sqlc/schema.sql"
+    gen:
+      go:
+        package: "generated"
+        out: "internal/database/generated"
+        sql_package: "pgx/v5"
+        overrides:
+          - db_type: "bigserial"
+            go_type: "uint64"

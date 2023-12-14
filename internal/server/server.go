@@ -3,31 +3,38 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/go-sql-driver/mysql"
-	db "github.com/tsusowake/go.server/internal/database"
-	mysql2 "github.com/tsusowake/go.server/internal/database/mysql"
-	"github.com/tsusowake/go.server/util/database"
+	"net/http"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/pkg/errors"
+	"github.com/sethvargo/go-envconfig"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
+	"github.com/tsusowake/go.server/internal/config"
+	"github.com/tsusowake/go.server/internal/database"
+	"github.com/tsusowake/go.server/internal/database/generated"
+	"github.com/tsusowake/go.server/internal/database/postgres"
 	"github.com/tsusowake/go.server/util/echoutil"
 	"github.com/tsusowake/go.server/util/logger"
 	"github.com/tsusowake/go.server/util/redis"
-	ptime "github.com/tsusowake/go.server/util/time"
-	"net/http"
-	"time"
-
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 type server struct {
 	EchoServer  *echo.Echo
 	Logger      *zap.Logger
 	RedisClient redis.RedisClient
-	Database    *db.Database
+	Database    *database.Database
 }
 
 func Run(ctx context.Context) error {
+	var c config.Config
+	if err := envconfig.Process(ctx, &c); err != nil {
+		return err
+	}
+
 	e := echo.New()
 
 	l, err := logger.NewLogger(zapcore.DebugLevel)
@@ -53,11 +60,11 @@ func Run(ctx context.Context) error {
 			return nil
 		},
 	}))
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			cc := &
-		}
-	})
+	//e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	//	return func(c echo.Context) error {
+	//		//cc := &
+	//	}
+	//})
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{
 			// TODO
@@ -77,36 +84,22 @@ func Run(ctx context.Context) error {
 
 	rc := redis.NewRedisClient(ctx, "localhost:6379", "")
 
-	loc, err := ptime.LoadLocation()
+	// RDB
+	dbPoolCtx, cancelDbPoolCtx := context.WithCancel(ctx)
+	defer cancelDbPoolCtx()
+	dbpool, err := pgxpool.New(dbPoolCtx, c.DB.ConnString())
 	if err != nil {
-		return err
+		return errors.New(fmt.Sprintf("Unable to connect to database: %v\n", err))
 	}
-	mconf := &mysql.Config{
-		User:      "test",
-		Passwd:    "test",
-		Addr:      "127.0.0.1",
-		DBName:    "yunne_test",
-		Collation: "utf8_general_ci",
-		Loc:       loc,
-	}
-	mconf = database.WithParseTime(mconf)
-	dbc, err := database.Open(mconf, l)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		_ = dbc.DB.Close()
-	}()
-	// See "Important settings" section.
-	dbc.DB.SetConnMaxLifetime(time.Minute * 3)
-	dbc.DB.SetMaxOpenConns(10)
-	dbc.DB.SetMaxIdleConns(10)
+	defer dbpool.Close()
+
+	query := generated.New(dbpool)
 
 	s := &server{
 		EchoServer:  e,
 		Logger:      l,
 		RedisClient: rc,
-		Database:    mysql2.NewDatabase(dbc),
+		Database:    postgres.NewDatabase(query),
 	}
 	s.setupHandlers(e)
 	return s.Start("1323")
@@ -129,8 +122,6 @@ func (s *server) setupHandlers(e *echo.Echo) {
 
 	// /users
 	e.GET("/user/:id", s.getUser)
-	// TODO 副作用を消す
-	e.GET("/user/create", s.createUser)
 
 	// /rooms
 	e.POST("/rooms", s.createRoom)

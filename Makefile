@@ -18,6 +18,27 @@ lint:
 test:
 	go test -cover ./...
 
-.PHONY: schemaspy
-schemaspy:
-	docker compose -f compose.schemaspy.yaml up -d
+#.PHONY: schemaspy
+#schemaspy:
+#	docker compose -f compose.schemaspy.yaml up -d
+
+.PHONY: run
+run:
+	docker compose -f compose.yaml up -d
+
+.PHONY: build-nocache
+build-nocache:
+	docker compose -f compose.yaml build --no-cache
+
+.phony: dump-schema
+dump-schema:
+	psqldef -U user -Wpassword -h localhost -p 5432 yunne --export >sqlc/schema.sql
+
+.phony: gen-sqlc
+gen-sqlc:
+	docker pull sqlc/sqlc:1.24.0
+	docker run --rm -v .:/src -w /src sqlc/sqlc generate
+
+.phony: clean-gen-sqlc
+clean-gen-sqlc:
+	rm -rf internal/database/generated
