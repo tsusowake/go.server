@@ -7,6 +7,5 @@ import (
 func AddCommands(rootCmd *cobra.Command) {
 	rootCmd.AddCommand(
 		serverCmd,
-		chatCmd,
 	)
 }

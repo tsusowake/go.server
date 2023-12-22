@@ -28,22 +28,3 @@ func (s *server) getUser(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, response.ToUser(u))
 }
-
-//func (s *server) createUser(ctx echo.Context) error {
-//	req, err := request.NewCreateUser(ctx)
-//	if err != nil {
-//		return ctx.JSON(http.StatusBadRequest, nil)
-//	}
-//
-//	c := echoutil.FromEchoContext(ctx)
-//	user := &entity.User{
-//		Password: req.Password,
-//		Email:    req.Email,
-//		Status:   entity.UserStatusActive,
-//	}
-//	if err := s.Database.User.Create(c, user); err != nil {
-//		s.Logger.Error("failed to create user", zap.Error(err))
-//		return err
-//	}
-//	return nil
-//}

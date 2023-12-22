@@ -2,13 +2,13 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/pkg/errors"
 	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -69,7 +69,10 @@ func Run(ctx context.Context) error {
 		AllowOrigins: []string{
 			// TODO
 		},
-		// AllowHeaders: []string{echoutil.HeaderOrigin, echoutil.HeaderContentType, echoutil.HeaderAccept},
+		//AllowHeaders: []string{
+		//	ContentType,
+		//	Accept,
+		//},
 		AllowMethods: []string{
 			http.MethodOptions,
 			http.MethodGet,
@@ -82,6 +85,7 @@ func Run(ctx context.Context) error {
 	e.HTTPErrorHandler = errorHandler
 	echoutil.UseCustomValidator(e)
 
+	// TODO RedisConfig
 	rc := redis.NewRedisClient(ctx, "localhost:6379", "")
 
 	// RDB
@@ -117,22 +121,17 @@ func (s *server) Stop() error {
 }
 
 func (s *server) setupHandlers(e *echo.Echo) {
-	// API サーバーとして実行するので /favicon.ico はリクエストされない
+	// API サーバーとして実行するので /favicon.ico は不要だがエラーログが邪魔
 	e.GET("/favicon.ico", s.getFavicon)
 
-	// /users
+	// users
 	e.GET("/user/:id", s.getUser)
-
-	// /rooms
-	e.POST("/rooms", s.createRoom)
-	// TODO channel の subscribe は別サーバーが良いかも
-	e.GET("/rooms/chat", s.connectChat)
-	e.POST("/rooms/chat/messages", s.sendMessage)
 }
 
 func errorHandler(err error, ctx echo.Context) {
 	code := http.StatusInternalServerError
-	if he, ok := err.(*echo.HTTPError); ok {
+	var he *echo.HTTPError
+	if errors.As(err, &he) {
 		code = he.Code
 	}
 	ctx.Logger().Error("InternalServerError: ",
