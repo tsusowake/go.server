@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -13,10 +14,10 @@ import (
 func main() {
 	c := &cobra.Command{Use: ""}
 	cmd.AddCommands(c)
-	switch err := c.Execute(); err {
-	case nil:
+	switch err := c.Execute(); {
+	case err == nil:
 		os.Exit(0)
-	case context.Canceled:
+	case errors.Is(err, context.Canceled):
 		fmt.Println("canceled")
 		os.Exit(0)
 	default:
