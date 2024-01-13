@@ -126,6 +126,7 @@ func (s *server) setupHandlers(e *echo.Echo) {
 
 	// users
 	e.GET("/user/:id", s.getUser)
+	e.POST("/user", s.createUser)
 }
 
 func errorHandler(err error, ctx echo.Context) {

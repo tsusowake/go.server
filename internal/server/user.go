@@ -28,3 +28,12 @@ func (s *server) getUser(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, response.ToUser(u))
 }
+
+func (s *server) createUser(ctx echo.Context) error {
+	id, err := s.Database.User.Create(echoutil.FromEchoContext(ctx))
+	if err != nil {
+		s.Logger.Error("createUser: error", zap.Error(err))
+		return err
+	}
+	return ctx.JSON(http.StatusOK, response.ToCreateUserResponse(id))
+}

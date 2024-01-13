@@ -11,3 +11,13 @@ func ToUser(u *entity.User) *User {
 		ID: u.ID,
 	}
 }
+
+type CreateUserResponse struct {
+	ID uint64 `json:"id"`
+}
+
+func ToCreateUserResponse(id uint64) *CreateUserResponse {
+	return &CreateUserResponse{
+		ID: id,
+	}
+}
