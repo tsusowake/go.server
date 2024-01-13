@@ -42,10 +42,6 @@ func Run(ctx context.Context) error {
 		return err
 	}
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogLatency:   true,
-		LogProtocol:  true,
-		LogRemoteIP:  true,
-		LogHost:      true,
 		LogMethod:    true,
 		LogURI:       true,
 		LogRequestID: true,

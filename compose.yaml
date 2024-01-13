@@ -7,32 +7,6 @@ services:
       - "5432:5432"
     volumes:
       - yunne-db-data:/var/lib/postgresql/data
-    networks:
-      - schemaspy-network
-# FIXME
-#  schemaspy:
-#    build: .docker/schemaspy
-#    volumes:
-#      - ./.output:/output
-#    depends_on:
-#      - mysql
-#    tty: true
-#    networks:
-#      - schemaspy-network
-#    command: >
-#      java -jar schemaspy.jar -o /output/
-#      -t mysql
-#      -dp /drivers/mysql-connector-java.jar
-#      -host db
-#      -port 5432
-#      -db dev
-#      -u test
-#      -p test
-#      -s dev
 
 volumes:
   yunne-db-data:
-
-networks:
-  schemaspy-network:
-    external: true
