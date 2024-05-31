@@ -1,54 +1,82 @@
 CREATE TABLE IF NOT EXISTS users
 (
-    id         bigserial primary key,
-    created_at timestamp not null default current_timestamp
+    id         UUID PRIMARY KEY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-create table if not exists user_locks
+CREATE TABLE IF NOT EXISTS user_credentials
 (
-    user_id    bigint primary key,
-    lock_type  smallint  not null check (lock_type >= 0),
-    locked_at  timestamp not null,
-    created_at timestamp not null default current_timestamp,
-    updated_at timestamp not null default current_timestamp,
-    constraint user_locks_fk_user_id foreign key (user_id) references users (id)
+    user_id       UUID PRIMARY KEY,
+    password_hash TEXT        NOT NULL,
+    salt          TEXT        NOT NULL,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT user_credentials_fk_user_id FOREIGN KEY (user_id) REFERENCES users (id)
 );
+CREATE INDEX user_credentials_idx_user_id ON user_credentials (user_id);
 
-create table if not exists user_credentials
+CREATE TABLE IF NOT EXISTS account_statuses
 (
-    user_id    bigint primary key,
-    password   text      not null,
-    salt       text      not null,
-    created_at timestamp not null default current_timestamp,
-    updated_at timestamp not null default current_timestamp,
-    constraint user_credentials_fk_user_id foreign key (user_id) references users (id)
+    user_id    UUID PRIMARY KEY,
+    status     SMALLINT    NOT NULL CHECK (status >= 0),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT account_statuses_fk_user_id FOREIGN KEY (user_id) REFERENCES users (id)
 );
+CREATE INDEX account_statuses_idx_user_id ON account_statuses (user_id);
 
-create table if not exists user_emails
+CREATE TABLE IF NOT EXISTS account_status_activities
 (
-    user_id    bigint primary key,
-    email      text      not null,
-    created_at timestamp not null default current_timestamp,
-    updated_at timestamp not null default current_timestamp,
-    constraint user_emails_fk_user_id foreign key (user_id) references users (id)
+    id            UUID PRIMARY KEY,
+    user_id       UUID        NOT NULL,
+    activity_type SMALLINT    NOT NULL CHECK (activity_type >= 0),
+    occurred_at   TIMESTAMPTZ NOT NULL,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT account_status_activities_fk_user_id FOREIGN KEY (user_id) REFERENCES users (id)
 );
-create index idx_user_emails_email on user_emails (email);
+CREATE INDEX account_status_activities_idx_user_id ON account_status_activities (user_id);
 
-create table if not exists user_access_tokens
+CREATE TABLE IF NOT EXISTS account_locks
 (
-    id         bigserial primary key,
-    user_id    bigint    not null,
-    token      text      not null,
-    issued_at  timestamp not null,
-    expires_at timestamp not null,
-    created_at timestamp not null default current_timestamp,
-    constraint user_access_tokens_uk_token unique (token),
-    constraint user_access_tokens_fk_user_id foreign key (user_id) references users (id)
+    account_status_activity_id UUID        NOT NULL,
+    reason                     TEXT        NOT NULL,
+    created_at                 TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT account_status_activities_fk_account_status_activity_id FOREIGN KEY (account_status_activity_id) REFERENCES account_status_activities (id)
 );
+CREATE INDEX account_locks_idx_account_status_activity_id ON account_locks (account_status_activity_id);
+
+CREATE TABLE IF NOT EXISTS account_unlocks
+(
+    account_status_activity_id UUID        NOT NULL,
+    reason                     TEXT        NOT NULL,
+    created_at                 TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT account_status_activities_fk_account_status_activity_id FOREIGN KEY (account_status_activity_id) REFERENCES account_status_activities (id)
+);
+CREATE INDEX account_unlocks_idx_account_status_activity_id ON account_unlocks (account_status_activity_id);
+
+CREATE TABLE IF NOT EXISTS user_emails
+(
+    user_id    UUID PRIMARY KEY,
+    email      TEXT        NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT user_emails_fk_user_id FOREIGN KEY (user_id) REFERENCES users (id)
+);
+CREATE INDEX user_emails_idx_user_id ON user_emails (user_id);
 
 -- down
--- drop table if exists user_access_tokens;
--- drop table if exists user_emails;
--- drop table if exists user_credentials;
--- drop table if exists user_locks;
--- drop table if exists users;
+DROP TABLE IF EXISTS user_emails;
+
+DROP TABLE IF EXISTS account_unlocks;
+
+DROP TABLE IF EXISTS account_locks;
+
+DROP TABLE IF EXISTS account_status_activities;
+
+DROP TABLE IF EXISTS account_statuses;
+
+DROP TABLE IF EXISTS user_credentials;
+
+DROP TABLE IF EXISTS users;
+
