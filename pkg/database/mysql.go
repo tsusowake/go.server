@@ -3,12 +3,14 @@ package database
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/cenkalti/backoff/v4"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/tsusowake/go.server/util/uuid"
 	"go.uber.org/zap"
-	"time"
+
+	"github.com/tsusowake/go.server/pkg/uuid"
 )
 
 type Connector struct {

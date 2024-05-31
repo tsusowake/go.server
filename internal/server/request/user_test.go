@@ -2,12 +2,14 @@ package request
 
 import (
 	"bytes"
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
-	"github.com/tsusowake/go.server/util/echoutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/tsusowake/go.server/pkg/echoutil"
 )
 
 func TestNewCreateUser(t *testing.T) {

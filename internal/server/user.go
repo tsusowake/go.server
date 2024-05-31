@@ -10,7 +10,7 @@ import (
 
 	"github.com/tsusowake/go.server/internal/server/request"
 	"github.com/tsusowake/go.server/internal/server/response"
-	"github.com/tsusowake/go.server/util/echoutil"
+	"github.com/tsusowake/go.server/pkg/echoutil"
 )
 
 func (s *server) getUser(ctx echo.Context) error {

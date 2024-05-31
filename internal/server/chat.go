@@ -3,9 +3,10 @@ package server
 import (
 	"errors"
 	"fmt"
-	"github.com/tsusowake/go.server/util/echoutil"
 	"net/http"
 	"time"
+
+	"github.com/tsusowake/go.server/pkg/echoutil"
 
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"

@@ -17,16 +17,20 @@ import (
 	"github.com/tsusowake/go.server/internal/database"
 	"github.com/tsusowake/go.server/internal/database/generated"
 	"github.com/tsusowake/go.server/internal/database/postgres"
-	"github.com/tsusowake/go.server/util/echoutil"
-	"github.com/tsusowake/go.server/util/logger"
-	"github.com/tsusowake/go.server/util/redis"
+	"github.com/tsusowake/go.server/pkg/echoutil"
+	"github.com/tsusowake/go.server/pkg/logger"
+	"github.com/tsusowake/go.server/pkg/redis"
+	"github.com/tsusowake/go.server/pkg/time"
+	"github.com/tsusowake/go.server/pkg/ulid"
 )
 
 type server struct {
-	EchoServer  *echo.Echo
-	Logger      *zap.Logger
-	RedisClient redis.RedisClient
-	Database    *database.Database
+	EchoServer    *echo.Echo
+	Logger        *zap.Logger
+	RedisClient   redis.RedisClient
+	Database      *database.Database
+	Clocker       time.Clocker
+	ULIDGenerator ulid.ULIDGenerator
 }
 
 func Run(ctx context.Context) error {
@@ -96,10 +100,12 @@ func Run(ctx context.Context) error {
 	query := generated.New(dbpool)
 
 	s := &server{
-		EchoServer:  e,
-		Logger:      l,
-		RedisClient: rc,
-		Database:    postgres.NewDatabase(query),
+		EchoServer:    e,
+		Logger:        l,
+		RedisClient:   rc,
+		Database:      postgres.NewDatabase(query),
+		Clocker:       time.NewClocker(),
+		ULIDGenerator: ulid.NewULIDGenerator(),
 	}
 	s.setupHandlers(e)
 	return s.Start("1323")
