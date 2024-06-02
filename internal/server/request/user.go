@@ -5,7 +5,7 @@ import (
 )
 
 type GetUser struct {
-	ID uint64 `json:"id" param:"id"`
+	ID string `json:"id" param:"id"`
 }
 
 type CreateUser struct {

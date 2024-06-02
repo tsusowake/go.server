@@ -1,30 +1,29 @@
-package repository
+package auth
 
 import (
 	"context"
 
-	"github.com/tsusowake/go.server/internal/database"
 	"github.com/tsusowake/go.server/internal/database/generated"
 	"github.com/tsusowake/go.server/internal/domain/auth/entity"
 )
 
-type UserEmail struct {
+type userEmail struct {
 	query *generated.Queries
 }
 
-var _ database.UserEmail = (*UserEmail)(nil)
+var _ UserEmail = (*userEmail)(nil)
 
-func NewUserEmail(q *generated.UserEmail) *UserEmail {
-	return &UserEmail{
+func NewUserEmail(q *generated.Queries) UserEmail {
+	return &userEmail{
 		query: q,
 	}
 }
 
-func (u *UserEmail) GetByUserID(
+func (u *userEmail) GetByUserID(
 	ctx context.Context,
 	userID string,
 ) (*entity.UserEmail, error) {
-	ret, e := u.query.GetUserEmailByUserID(ctx, userID)
+	ret, e := u.query.GetByUserID(ctx, userID)
 	return &entity.UserEmail{
 		UserID: ret.UserID,
 		Email:  ret.Email,

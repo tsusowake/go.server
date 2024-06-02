@@ -1,4 +1,4 @@
--- name: GetUserEmailByUserID :one
+-- name: GetByUserID :one
 select user_id, email
 from user_emails
 where user_id = $1

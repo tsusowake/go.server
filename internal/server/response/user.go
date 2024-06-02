@@ -1,9 +1,9 @@
 package response
 
-import "github.com/tsusowake/go.server/internal/domain/account/entity"
+import "github.com/tsusowake/go.server/internal/domain/auth/entity"
 
 type User struct {
-	ID uint64 `json:"id"`
+	ID string `json:"id"`
 }
 
 func ToUser(u *entity.User) *User {
@@ -13,10 +13,10 @@ func ToUser(u *entity.User) *User {
 }
 
 type CreateUserResponse struct {
-	ID uint64 `json:"id"`
+	ID string `json:"id"`
 }
 
-func ToCreateUserResponse(id uint64) *CreateUserResponse {
+func ToCreateUserResponse(id string) *CreateUserResponse {
 	return &CreateUserResponse{
 		ID: id,
 	}

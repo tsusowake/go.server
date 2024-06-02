@@ -18,7 +18,7 @@ func (s *server) getUser(ctx echo.Context) error {
 	if err := ctx.Bind(req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, nil)
 	}
-	u, err := s.Database.User.GetByID(echoutil.FromEchoContext(ctx), req.ID)
+	u, err := s.Database.Auth.User.GetByID(echoutil.FromEchoContext(ctx), req.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ctx.JSON(http.StatusNotFound, "NotFound")
@@ -30,7 +30,7 @@ func (s *server) getUser(ctx echo.Context) error {
 }
 
 func (s *server) createUser(ctx echo.Context) error {
-	id, err := s.Database.User.Create(echoutil.FromEchoContext(ctx))
+	id, err := s.Database.Auth.User.Create(echoutil.FromEchoContext(ctx))
 	if err != nil {
 		s.Logger.Error("createUser: error", zap.Error(err))
 		return err

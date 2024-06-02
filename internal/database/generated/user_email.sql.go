@@ -9,21 +9,21 @@ import (
 	"context"
 )
 
-const getUserEmailByUserID = `-- name: GetUserEmailByUserID :one
+const getByUserID = `-- name: GetByUserID :one
 select user_id, email
 from user_emails
 where user_id = $1
 limit 1
 `
 
-type GetUserEmailByUserIDRow struct {
+type GetByUserIDRow struct {
 	UserID string
 	Email  string
 }
 
-func (q *Queries) GetUserEmailByUserID(ctx context.Context, userID string) (GetUserEmailByUserIDRow, error) {
-	row := q.db.QueryRow(ctx, getUserEmailByUserID, userID)
-	var i GetUserEmailByUserIDRow
+func (q *Queries) GetByUserID(ctx context.Context, userID string) (GetByUserIDRow, error) {
+	row := q.db.QueryRow(ctx, getByUserID, userID)
+	var i GetByUserIDRow
 	err := row.Scan(&i.UserID, &i.Email)
 	return i, err
 }

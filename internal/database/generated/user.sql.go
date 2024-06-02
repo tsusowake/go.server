@@ -9,28 +9,28 @@ import (
 	"context"
 )
 
-const createUser = `-- name: CreateUser :one
+const create = `-- name: Create :one
 insert into users default
 values
 returning id
 `
 
-func (q *Queries) CreateUser(ctx context.Context) (string, error) {
-	row := q.db.QueryRow(ctx, createUser)
+func (q *Queries) Create(ctx context.Context) (string, error) {
+	row := q.db.QueryRow(ctx, create)
 	var id string
 	err := row.Scan(&id)
 	return id, err
 }
 
-const getUserByID = `-- name: GetUserByID :one
+const getByID = `-- name: GetByID :one
 select id, created_at
 from users
 where id = $1
 limit 1
 `
 
-func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
-	row := q.db.QueryRow(ctx, getUserByID, id)
+func (q *Queries) GetByID(ctx context.Context, id string) (User, error) {
+	row := q.db.QueryRow(ctx, getByID, id)
 	var i User
 	err := row.Scan(&i.ID, &i.CreatedAt)
 	return i, err

@@ -16,7 +16,6 @@ import (
 	"github.com/tsusowake/go.server/internal/config"
 	"github.com/tsusowake/go.server/internal/database"
 	"github.com/tsusowake/go.server/internal/database/generated"
-	"github.com/tsusowake/go.server/internal/database/postgres"
 	"github.com/tsusowake/go.server/pkg/echoutil"
 	"github.com/tsusowake/go.server/pkg/logger"
 	"github.com/tsusowake/go.server/pkg/redis"
@@ -103,7 +102,7 @@ func Run(ctx context.Context) error {
 		EchoServer:    e,
 		Logger:        l,
 		RedisClient:   rc,
-		Database:      postgres.NewDatabase(query),
+		Database:      database.NewDatabase(query),
 		Clocker:       time.NewClocker(),
 		ULIDGenerator: ulid.NewULIDGenerator(),
 	}
