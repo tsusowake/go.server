@@ -5,7 +5,7 @@ package database
 import (
 	"context"
 
-	"github.com/tsusowake/go.server/internal/domain/account/entity"
+	"github.com/tsusowake/go.server/internal/domain/auth/entity"
 )
 
 type Database struct {
@@ -21,5 +21,7 @@ type User interface {
 }
 
 type UserCredential interface{}
-type UserEmail interface{}
+type UserEmail interface {
+	GetUserEmailByUserID(ctx context.Context, userID string) (*entity.UserEmail, error)
+}
 type UserLock interface{}

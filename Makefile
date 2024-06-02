@@ -18,10 +18,6 @@ lint:
 test:
 	go test -cover ./...
 
-#.PHONY: schemaspy
-#schemaspy:
-#	docker compose -f compose.schemaspy.yaml up -d
-
 .PHONY: run
 run:
 	docker compose -f compose.yaml up -d
@@ -36,7 +32,7 @@ dump-schema:
 
 .phony: gen-sqlc
 gen-sqlc:
-	docker pull sqlc/sqlc:1.24.0
+	docker pull sqlc/sqlc
 	docker run --rm -v .:/src -w /src sqlc/sqlc generate
 
 .phony: clean-gen-sqlc

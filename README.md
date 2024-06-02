@@ -32,8 +32,18 @@ docker network create -d bridge schemaspy-network
 ### schemaspy
 
 ```shell
+docker build -f .docker/schemaspy/Dockerfile -t schemaspy:dev .
 cd .docker/schemaspy
-docker build -t schemaspy:dev .
+docker run --rm -v $(pwd)/.output:/output schemaspy:dev \
+  -t pgsql \
+  -host host.docker.internal \
+  -port 5432 \
+  -db yunne \
+  -u user \
+  -p password \
+  -s public \
+  -dp /usr/local/bin/postgresql.jar \
+  -o /output
 
 ```
 

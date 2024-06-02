@@ -11,3 +11,5 @@ sql:
         overrides:
           - db_type: "bigserial"
             go_type: "uint64"
+          - db_type: "uuid"
+            go_type: "string"

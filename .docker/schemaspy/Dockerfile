@@ -1,18 +1,16 @@
-FROM --platform=linux/arm64/v8 openjdk:8u212-jdk-alpine
+FROM --platform=linux/arm64/v8 openjdk:11-jre-slim
 
-ENV MYSQL_VERSION=8.0.30
 ENV SCHEMASPY_VERSION=6.2.4
-ENV DRIVER_URL https://repo1.maven.org/maven2/mysql/mysql-connector-java/${MYSQL_VERSION}/mysql-connector-java-${MYSQL_VERSION}.jar
-ENV APP_URL https://github.com/schemaspy/schemaspy/releases/download/v${SCHEMASPY_VERSION}/schemaspy-${SCHEMASPY_VERSION}.jar
+ENV POSTGRES_DRIVER_VERSION=42.7.3
 
 WORKDIR /app
-COPY schemaspy.properties .
+COPY .docker/schemaspy/schemaspy.properties .
 
-RUN apk --update add graphviz ttf-dejavu && \
-    apk --update add --virtual .builddep tzdata wget libressl && \
-    cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
-    mkdir /drivers && \
-    wget -O /drivers/mysql-connector-java.jar ${DRIVER_URL} && \
-    wget -O schemaspy.jar ${APP_URL} && \
-    apk del .builddep && \
-    rm -rf /var/cache/apk/*
+RUN apt-get update && \
+    apt-get install -y wget graphviz && \
+    apt-get clean
+
+RUN wget https://github.com/schemaspy/schemaspy/releases/download/v${SCHEMASPY_VERSION}/schemaspy-${SCHEMASPY_VERSION}.jar -O /usr/local/bin/schemaspy.jar
+RUN wget https://jdbc.postgresql.org/download/postgresql-${POSTGRES_DRIVER_VERSION}.jar -O /usr/local/bin/postgresql.jar
+
+ENTRYPOINT ["java", "-jar", "/usr/local/bin/schemaspy.jar"]
