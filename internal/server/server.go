@@ -10,7 +10,6 @@ import (
 	"github.com/caarlos0/env/v11"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
-	"go.uber.org/zap"
 
 	"github.com/tsusowake/go.server/internal/config"
 	"github.com/tsusowake/go.server/internal/database"
@@ -43,7 +42,7 @@ func Run(ctx context.Context) error {
 	slog.SetDefault(l)
 
 	if err := runServer(ctx); err != nil {
-		slog.ErrorContext(ctx, "failed to run server", zap.Error(err))
+		slog.ErrorContext(ctx, "failed to run server", slog.String("error", err.Error()))
 		return err
 	}
 	return nil
