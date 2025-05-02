@@ -3,13 +3,16 @@ package server
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/caarlos0/env/v11"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
+	"github.com/morikuni/failure/v2"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/tsusowake/go.server/internal/config"
 	"github.com/tsusowake/go.server/internal/database"
@@ -17,7 +20,7 @@ import (
 	"github.com/tsusowake/go.server/pkg/logger"
 	pkgmiddleware "github.com/tsusowake/go.server/pkg/middleware"
 	"github.com/tsusowake/go.server/pkg/redis"
-	"github.com/tsusowake/go.server/pkg/time"
+	pkgtime "github.com/tsusowake/go.server/pkg/time"
 	"github.com/tsusowake/go.server/pkg/ulid"
 )
 
@@ -27,7 +30,7 @@ type server struct {
 	EchoServer    *echo.Echo
 	RedisClient   redis.RedisClient
 	Database      *database.Database
-	Clocker       time.Clocker
+	Clocker       pkgtime.Clocker
 	ULIDGenerator ulid.ULIDGenerator
 }
 
@@ -43,7 +46,7 @@ func Run(ctx context.Context) error {
 
 	if err := runServer(ctx); err != nil {
 		slog.ErrorContext(ctx, "failed to run server", slog.String("error", err.Error()))
-		return err
+		return failure.Wrap(err)
 	}
 	return nil
 }
@@ -54,7 +57,7 @@ func runServer(ctx context.Context) error {
 	defer cancelDbPoolCtx()
 	dbpool, err := pgxpool.New(dbPoolCtx, conf.DBConfig.ConnString())
 	if err != nil {
-		return errors.New(fmt.Sprintf("Unable to connect to database: %v\n", err))
+		return failure.Wrap(err, failure.Message("failed to connect to database"))
 	}
 	defer dbpool.Close()
 
@@ -62,7 +65,13 @@ func runServer(ctx context.Context) error {
 	redisCtx, cancelRedisCtx := context.WithCancel(ctx)
 	defer cancelRedisCtx()
 	rc := redis.NewRedisClient(redisCtx, conf.RedisConfig.Address(), conf.RedisConfig.Password)
+	defer func() {
+		if err := rc.Close(); err != nil {
+			slog.ErrorContext(ctx, "failed to close redis client", slog.String("error", err.Error()))
+		}
+	}()
 
+	// Setup Echo server
 	e := echo.New()
 
 	e.HTTPErrorHandler = pkgmiddleware.ErrorHandler
@@ -79,28 +88,50 @@ func runServer(ctx context.Context) error {
 		EchoServer:    e,
 		RedisClient:   rc,
 		Database:      database.NewDatabase(query),
-		Clocker:       time.NewClocker(),
+		Clocker:       pkgtime.NewClocker(),
 		ULIDGenerator: ulid.NewULIDGenerator(),
 	}
 	s.setupHandlers(e)
-	return s.Start("1323")
-}
 
-func (s *server) Start(port string) error {
-	return s.EchoServer.Start(fmt.Sprintf(":%s", port))
-}
+	// Start server
+	eg, egCtx := errgroup.WithContext(ctx)
+	eg.Go(func() error {
+		go func() {
+			<-ctx.Done()
+			if stopErr := stopServer(ctx, e); stopErr != nil {
+				slog.ErrorContext(ctx, "failed to shutdown echo server", slog.String("error", err.Error()))
+			}
+		}()
+		return startServer(egCtx, e)
+	})
 
-func (s *server) Stop() error {
-	if err := s.RedisClient.Close(); err != nil {
-		return err
+	if egErr := eg.Wait(); egErr != nil && !errors.Is(egErr, context.Canceled) {
+		return failure.Wrap(egErr, failure.Message("server encountered an error"))
 	}
 	return nil
 }
 
-func (s *server) setupHandlers(e *echo.Echo) {
-	// API サーバーとして実行するので /favicon.ico は不要だがエラーログが邪魔
-	e.GET("/favicon.ico", s.getFavicon)
+func startServer(ctx context.Context, e *echo.Echo) error {
+	slog.InfoContext(ctx, "start server")
+	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return failure.Wrap(err, failure.Message("failed to start server"))
+	}
+	return nil
+}
 
+func stopServer(ctx context.Context, e *echo.Echo) error {
+	// graceful shutdown
+	slog.InfoContext(ctx, "stop server")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		return failure.Wrap(err, failure.Message("failed to shutdown server"))
+	}
+	slog.InfoContext(ctx, "server stopped")
+	return nil
+}
+
+func (s *server) setupHandlers(e *echo.Echo) {
 	// users
 	e.GET("/user/:id", s.getUser)
 	e.POST("/user", s.createUser)
