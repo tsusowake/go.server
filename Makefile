@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	go build -o .dist/app main.go
+	go build -o .dist/app apps/app/main.go
 
 .PHONY: build
 build-race:

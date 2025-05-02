@@ -4,28 +4,28 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
+	"log/slog"
+	"os"
 
+	"github.com/caarlos0/env/v11"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"github.com/sethvargo/go-envconfig"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/tsusowake/go.server/internal/config"
 	"github.com/tsusowake/go.server/internal/database"
 	"github.com/tsusowake/go.server/internal/database/generated"
-	"github.com/tsusowake/go.server/pkg/echoutil"
 	"github.com/tsusowake/go.server/pkg/logger"
+	pkgmiddleware "github.com/tsusowake/go.server/pkg/middleware"
 	"github.com/tsusowake/go.server/pkg/redis"
 	"github.com/tsusowake/go.server/pkg/time"
 	"github.com/tsusowake/go.server/pkg/ulid"
 )
 
+var conf config.Config
+
 type server struct {
 	EchoServer    *echo.Echo
-	Logger        *zap.Logger
 	RedisClient   redis.RedisClient
 	Database      *database.Database
 	Clocker       time.Clocker
@@ -33,74 +33,51 @@ type server struct {
 }
 
 func Run(ctx context.Context) error {
-	var c config.Config
-	if err := envconfig.Process(ctx, &c); err != nil {
+	conf = env.Must(env.ParseAs[config.Config]())
+
+	fd := os.Stdout
+	l := logger.NewLogger(fd, slog.LevelInfo, logger.LogMetadata{
+		Service: conf.Service,
+		Env:     conf.Env,
+	})
+	slog.SetDefault(l)
+
+	if err := runServer(ctx); err != nil {
+		slog.ErrorContext(ctx, "failed to run server", zap.Error(err))
 		return err
 	}
+	return nil
+}
 
-	e := echo.New()
-
-	l, err := logger.NewLogger(zapcore.DebugLevel)
-	if err != nil {
-		return err
-	}
-	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogMethod:    true,
-		LogURI:       true,
-		LogRequestID: true,
-		LogReferer:   true,
-		LogUserAgent: true,
-		LogStatus:    true,
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-			l.Info("request",
-				zap.String("URI", v.URI),
-				zap.Int("status", v.Status),
-			)
-			return nil
-		},
-	}))
-	//e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-	//	return func(c echo.Context) error {
-	//		//cc := &
-	//	}
-	//})
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{
-			// TODO
-		},
-		//AllowHeaders: []string{
-		//	ContentType,
-		//	Accept,
-		//},
-		AllowMethods: []string{
-			http.MethodOptions,
-			http.MethodGet,
-			http.MethodPut,
-			http.MethodPost,
-			http.MethodDelete,
-		},
-	}))
-	e.Use(middleware.Recover())
-	e.HTTPErrorHandler = errorHandler
-	echoutil.UseCustomValidator(e)
-
-	// TODO RedisConfig
-	rc := redis.NewRedisClient(ctx, "localhost:6379", "")
-
+func runServer(ctx context.Context) error {
 	// RDB
 	dbPoolCtx, cancelDbPoolCtx := context.WithCancel(ctx)
 	defer cancelDbPoolCtx()
-	dbpool, err := pgxpool.New(dbPoolCtx, c.DB.ConnString())
+	dbpool, err := pgxpool.New(dbPoolCtx, conf.DBConfig.ConnString())
 	if err != nil {
 		return errors.New(fmt.Sprintf("Unable to connect to database: %v\n", err))
 	}
 	defer dbpool.Close()
 
+	// Redis
+	redisCtx, cancelRedisCtx := context.WithCancel(ctx)
+	defer cancelRedisCtx()
+	rc := redis.NewRedisClient(redisCtx, conf.RedisConfig.Address(), conf.RedisConfig.Password)
+
+	e := echo.New()
+
+	e.HTTPErrorHandler = pkgmiddleware.ErrorHandler
+	e.Validator = pkgmiddleware.NewCustomValidator()
+
+	// setup middlewares
+	e.Use(pkgmiddleware.CORSMiddleware(conf.CORSConfig.Decode()))
+	e.Use(pkgmiddleware.NewLoggerMiddleware())
+	e.Use(pkgmiddleware.RecoverMiddleware())
+
 	query := generated.New(dbpool)
 
 	s := &server{
 		EchoServer:    e,
-		Logger:        l,
 		RedisClient:   rc,
 		Database:      database.NewDatabase(query),
 		Clocker:       time.NewClocker(),
@@ -128,16 +105,4 @@ func (s *server) setupHandlers(e *echo.Echo) {
 	// users
 	e.GET("/user/:id", s.getUser)
 	e.POST("/user", s.createUser)
-}
-
-func errorHandler(err error, ctx echo.Context) {
-	code := http.StatusInternalServerError
-	var he *echo.HTTPError
-	if errors.As(err, &he) {
-		code = he.Code
-	}
-	ctx.Logger().Error("InternalServerError: ",
-		zap.Int("code", code),
-		zap.String("cause", err.Error()),
-	)
 }

@@ -1,5 +1,8 @@
 package config
 
 type Config struct {
-	DB DBConfig
+	AppConfig
+	DBConfig
+	CORSConfig
+	RedisConfig
 }

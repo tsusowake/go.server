@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"os"
 	"os/signal"
 	"syscall"
 
@@ -12,7 +11,7 @@ import (
 )
 
 var (
-	serverCmd = &cobra.Command{
+	ServerCmd = &cobra.Command{
 		Use:   "server",
 		Short: "server",
 		RunE:  runServer,
@@ -20,7 +19,7 @@ var (
 )
 
 func runServer(_ *cobra.Command, _ []string) error {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill, syscall.SIGTERM)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer stop()
 
 	if err := server.Run(ctx); err != nil {
