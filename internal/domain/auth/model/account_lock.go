@@ -1,6 +1,6 @@
-package entity
+package model
 
-type AccountUnlock struct {
+type AccountLock struct {
 	AccountStatusActivityID string
 	Reason                  string
 }

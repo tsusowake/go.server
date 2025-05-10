@@ -1,12 +1,14 @@
 package response
 
-import "github.com/tsusowake/go.server/internal/domain/auth/entity"
+import (
+	"github.com/tsusowake/go.server/internal/domain/auth/model"
+)
 
 type User struct {
 	ID string `json:"id"`
 }
 
-func ToUser(u *entity.User) *User {
+func ToUser(u *model.User) *User {
 	return &User{
 		ID: u.ID,
 	}

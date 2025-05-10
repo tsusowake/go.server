@@ -6,7 +6,7 @@ import (
 	"context"
 
 	"github.com/tsusowake/go.server/internal/database/generated"
-	"github.com/tsusowake/go.server/internal/domain/auth/entity"
+	"github.com/tsusowake/go.server/internal/domain/auth/model"
 )
 
 type Repository struct {
@@ -26,12 +26,12 @@ func NewRepository(q *generated.Queries) *Repository {
 }
 
 type User interface {
-	GetByID(ctx context.Context, id string) (*entity.User, error)
+	GetByID(ctx context.Context, id string) (*model.User, error)
 	Create(ctx context.Context) (string, error)
 }
 
 type UserCredential interface{}
 type UserEmail interface {
-	GetByUserID(ctx context.Context, userID string) (*entity.UserEmail, error)
+	GetByUserID(ctx context.Context, userID string) (*model.UserEmail, error)
 }
 type UserLock interface{}

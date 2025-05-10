@@ -13,8 +13,9 @@ import (
 	context "context"
 	reflect "reflect"
 
-	entity "github.com/tsusowake/go.server/internal/domain/auth/entity"
 	gomock "go.uber.org/mock/gomock"
+
+	"github.com/tsusowake/go.server/internal/domain/auth/model"
 )
 
 // MockUser is a mock of User interface.
@@ -56,10 +57,10 @@ func (mr *MockUserMockRecorder) Create(ctx any) *gomock.Call {
 }
 
 // GetByID mocks base method.
-func (m *MockUser) GetByID(ctx context.Context, id string) (*entity.User, error) {
+func (m *MockUser) GetByID(ctx context.Context, id string) (*model.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", ctx, id)
-	ret0, _ := ret[0].(*entity.User)
+	ret0, _ := ret[0].(*model.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -117,10 +118,10 @@ func (m *MockUserEmail) EXPECT() *MockUserEmailMockRecorder {
 }
 
 // GetByUserID mocks base method.
-func (m *MockUserEmail) GetByUserID(ctx context.Context, userID string) (*entity.UserEmail, error) {
+func (m *MockUserEmail) GetByUserID(ctx context.Context, userID string) (*model.UserEmail, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByUserID", ctx, userID)
-	ret0, _ := ret[0].(*entity.UserEmail)
+	ret0, _ := ret[0].(*model.UserEmail)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

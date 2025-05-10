@@ -1,4 +1,4 @@
-package entity
+package model
 
 type AccountStatus struct {
 	UserID string

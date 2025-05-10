@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/tsusowake/go.server/internal/database/generated"
-	"github.com/tsusowake/go.server/internal/domain/auth/entity"
+	"github.com/tsusowake/go.server/internal/domain/auth/model"
 )
 
 type user struct {
@@ -19,7 +19,7 @@ func NewUser(q *generated.Queries) User {
 	}
 }
 
-func (u *user) GetByID(ctx context.Context, id string) (*entity.User, error) {
+func (u *user) GetByID(ctx context.Context, id string) (*model.User, error) {
 	ret, e := u.query.GetByID(ctx, id)
 	return u.toEntity(ctx, &ret), e
 }
@@ -29,8 +29,8 @@ func (u *user) Create(ctx context.Context) (string, error) {
 	return id, err
 }
 
-func (u *user) toEntity(_ context.Context, uu *generated.User) *entity.User {
-	return &entity.User{
+func (u *user) toEntity(_ context.Context, uu *generated.User) *model.User {
+	return &model.User{
 		ID: uu.ID,
 	}
 }

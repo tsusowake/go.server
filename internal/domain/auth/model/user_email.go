@@ -1,4 +1,4 @@
-package entity
+package model
 
 type UserEmail struct {
 	UserID string

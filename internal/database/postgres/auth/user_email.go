@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/tsusowake/go.server/internal/database/generated"
-	"github.com/tsusowake/go.server/internal/domain/auth/entity"
+	"github.com/tsusowake/go.server/internal/domain/auth/model"
 )
 
 type userEmail struct {
@@ -22,9 +22,9 @@ func NewUserEmail(q *generated.Queries) UserEmail {
 func (u *userEmail) GetByUserID(
 	ctx context.Context,
 	userID string,
-) (*entity.UserEmail, error) {
+) (*model.UserEmail, error) {
 	ret, e := u.query.GetByUserID(ctx, userID)
-	return &entity.UserEmail{
+	return &model.UserEmail{
 		UserID: ret.UserID,
 		Email:  ret.Email,
 	}, e
