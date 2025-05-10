@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/tsusowake/go.server/internal/server"
+	"github.com/tsusowake/go.server/apps/app/server"
 )
 
 var (

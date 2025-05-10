@@ -37,4 +37,4 @@ gen-sqlc:
 
 .phony: clean-gen-sqlc
 clean-gen-sqlc:
-	rm -rf internal/database/generated
+	rm -rf database/generated

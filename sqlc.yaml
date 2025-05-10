@@ -6,7 +6,7 @@ sql:
     gen:
       go:
         package: "generated"
-        out: "internal/database/generated"
+        out: "database/generated"
         sql_package: "pgx/v5"
         overrides:
           - db_type: "bigserial"
