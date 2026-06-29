@@ -1,0 +1,10 @@
+# oapi-codegen config: https://github.com/oapi-codegen/oapi-codegen
+package: oapi
+output: apps/app/server/oapi/oapi.gen.go
+generate:
+  models: true        # I/O 型定義 (request/response schemas)
+  echo-server: true   # Echo 用 ServerInterface / RegisterHandlers
+  strict-server: true # 型付き (ctx, request) -> (response, error) の strict handler
+  embedded-spec: true # 生成バイナリに spec を埋め込む (任意)
+output-options:
+  skip-prune: false

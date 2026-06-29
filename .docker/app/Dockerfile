@@ -1,5 +1,5 @@
 # build app
-FROM golang:1.20.4 AS build
+FROM golang:1.26.4 AS build
 ARG GITHUB_ACCESS_TOKEN
 COPY ../.. /app
 WORKDIR /app

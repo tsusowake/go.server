@@ -15,8 +15,10 @@ import (
 	"github.com/morikuni/failure/v2"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/tsusowake/go.server/apps/app/server/handlers"
 	"github.com/tsusowake/go.server/config"
 	"github.com/tsusowake/go.server/database"
+	"github.com/tsusowake/go.server/domain"
 	"github.com/tsusowake/go.server/database/generated"
 	"github.com/tsusowake/go.server/pkg/logger"
 	pkgmiddleware "github.com/tsusowake/go.server/pkg/middleware"
@@ -92,6 +94,10 @@ func runServer(ctx context.Context) error {
 		ULIDGenerator: ulid.NewULIDGenerator(),
 	}
 	fmt.Println("server initialized: ", s)
+
+	// Register OpenAPI-generated routes (strict handlers).
+	base := handlers.NewBaseHandler(domain.NewRepository())
+	handlers.NewAPI(base).Register(e)
 
 	// Start server
 	eg, egCtx := errgroup.WithContext(ctx)
