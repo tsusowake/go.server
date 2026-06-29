@@ -5,7 +5,8 @@ package auth
 import (
 	"context"
 
-	"github.com/tsusowake/go.server/database/generated"
+	"gorm.io/gorm"
+
 	"github.com/tsusowake/go.server/domain/auth/model"
 )
 
@@ -16,10 +17,10 @@ type Repository struct {
 	UserLock       UserLock
 }
 
-func NewRepository(q *generated.Queries) *Repository {
+func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{
-		User:           NewUser(q),
-		UserEmail:      NewUserEmail(q),
+		User:           NewUser(db),
+		UserEmail:      NewUserEmail(db),
 		UserCredential: nil,
 		UserLock:       nil,
 	}

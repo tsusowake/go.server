@@ -10,15 +10,15 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v11"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v5"
 	"github.com/morikuni/failure/v2"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
 	"github.com/tsusowake/go.server/apps/app/server/handlers"
 	"github.com/tsusowake/go.server/config"
 	"github.com/tsusowake/go.server/database"
 	"github.com/tsusowake/go.server/domain"
-	"github.com/tsusowake/go.server/database/generated"
 	"github.com/tsusowake/go.server/pkg/logger"
 	pkgmiddleware "github.com/tsusowake/go.server/pkg/middleware"
 	"github.com/tsusowake/go.server/pkg/redis"
@@ -54,13 +54,19 @@ func Run(ctx context.Context) error {
 
 func runServer(ctx context.Context) error {
 	// RDB
-	dbPoolCtx, cancelDbPoolCtx := context.WithCancel(ctx)
-	defer cancelDbPoolCtx()
-	dbpool, err := pgxpool.New(dbPoolCtx, conf.DBConfig.ConnString())
+	db, err := gorm.Open(postgres.Open(conf.DBConfig.ConnString()), &gorm.Config{})
 	if err != nil {
 		return failure.Wrap(err, failure.Message("failed to connect to database"))
 	}
-	defer dbpool.Close()
+	sqlDB, err := db.DB()
+	if err != nil {
+		return failure.Wrap(err, failure.Message("failed to get sql.DB from gorm"))
+	}
+	defer func() {
+		if err := sqlDB.Close(); err != nil {
+			slog.ErrorContext(ctx, "failed to close database", slog.String("error", err.Error()))
+		}
+	}()
 
 	// Redis
 	redisCtx, cancelRedisCtx := context.WithCancel(ctx)
@@ -83,12 +89,10 @@ func runServer(ctx context.Context) error {
 	e.Use(pkgmiddleware.NewLoggerMiddleware())
 	e.Use(pkgmiddleware.RecoverMiddleware())
 
-	query := generated.New(dbpool)
-
 	s := &server{
 		EchoServer:    e,
 		RedisClient:   rc,
-		Database:      database.NewDatabase(query),
+		Database:      database.NewDatabase(db),
 		Clocker:       pkgtime.NewClocker(),
 		ULIDGenerator: ulid.NewULIDGenerator(),
 	}

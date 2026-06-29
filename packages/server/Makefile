@@ -23,16 +23,7 @@ test:
 
 .PHONY: dump-schema
 dump-schema:
-	psqldef -U user -Wpassword -h localhost -p 5432 yunne --export >sqlc/schema.sql
-
-.PHONY: gen-sqlc
-gen-sqlc:
-	docker pull sqlc/sqlc
-	docker run --rm -v .:/src -w /src sqlc/sqlc generate
-
-.PHONY: clean-gen-sqlc
-clean-gen-sqlc:
-	rm -rf database/generated
+	psqldef -U user -Wpassword -h localhost -p 5432 yunne --export >database/schema.sql
 
 # 注: openapi-bundled.yaml はルートの `make bundle` (redocly) が生成する。
 #     通常はルートの `make gen-oapi` が bundle → これの順で呼び出す。

@@ -1,7 +1,8 @@
 package database
 
 import (
-	"github.com/tsusowake/go.server/database/generated"
+	"gorm.io/gorm"
+
 	"github.com/tsusowake/go.server/database/postgres/auth"
 )
 
@@ -10,8 +11,8 @@ type Database struct {
 	// Membership
 }
 
-func NewDatabase(q *generated.Queries) *Database {
+func NewDatabase(db *gorm.DB) *Database {
 	return &Database{
-		Auth: auth.NewRepository(q),
+		Auth: auth.NewRepository(db),
 	}
 }

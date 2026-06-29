@@ -3,19 +3,21 @@ package auth
 import (
 	"context"
 
-	"github.com/tsusowake/go.server/database/generated"
+	"gorm.io/gorm"
+
+	"github.com/tsusowake/go.server/database/entity"
 	"github.com/tsusowake/go.server/domain/auth/model"
 )
 
 type userEmail struct {
-	query *generated.Queries
+	db *gorm.DB
 }
 
 var _ UserEmail = (*userEmail)(nil)
 
-func NewUserEmail(q *generated.Queries) UserEmail {
+func NewUserEmail(db *gorm.DB) UserEmail {
 	return &userEmail{
-		query: q,
+		db: db,
 	}
 }
 
@@ -23,9 +25,12 @@ func (u *userEmail) GetByUserID(
 	ctx context.Context,
 	userID string,
 ) (*model.UserEmail, error) {
-	ret, e := u.query.GetByUserID(ctx, userID)
+	var ret entity.UserEmail
+	if err := u.db.WithContext(ctx).First(&ret, "user_id = ?", userID).Error; err != nil {
+		return nil, err
+	}
 	return &model.UserEmail{
 		UserID: ret.UserID,
 		Email:  ret.Email,
-	}, e
+	}, nil
 }
