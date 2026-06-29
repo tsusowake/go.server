@@ -1,10 +1,10 @@
 import { defineConfig } from "orval";
 
-// 単一スキーマ openapi/openapi.yaml から web / admin-console 双方の
-// TypeScript クライアント (TanStack Query フック + 型) を生成する。
+// バンドル済みスキーマ openapi/openapi-bundled.yaml から web / admin-console
+// 双方の TypeScript クライアント (TanStack Query フック + 型) を生成する。
+// openapi-bundled.yaml は `bun run bundle` (redocly) が paths/ schemas/ を
+// 解決して生成するため、orval 実行前にバンドルが必要。
 // orval はパスを「この設定ファイルのあるディレクトリ (openapi/)」基準で解決する。
-// 将来 admin 専用 API を分けたい場合は openapi/admin.yaml を足し、
-// admin ターゲットの input を差し替える。
 const sharedOutput = {
   mode: "tags-split" as const,
   client: "react-query" as const,
@@ -15,7 +15,7 @@ const sharedOutput = {
 
 export default defineConfig({
   web: {
-    input: "./openapi.yaml",
+    input: "./openapi-bundled.yaml",
     output: {
       ...sharedOutput,
       target: "../packages/web/app/api/endpoints",
@@ -29,7 +29,7 @@ export default defineConfig({
     },
   },
   admin: {
-    input: "./openapi.yaml",
+    input: "./openapi-bundled.yaml",
     output: {
       ...sharedOutput,
       target: "../packages/admin-console/app/api/endpoints",

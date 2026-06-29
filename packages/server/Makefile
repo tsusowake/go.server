@@ -34,9 +34,11 @@ gen-sqlc:
 clean-gen-sqlc:
 	rm -rf database/generated
 
+# 注: openapi-bundled.yaml はルートの `make bundle` (redocly) が生成する。
+#     通常はルートの `make gen-oapi` が bundle → これの順で呼び出す。
 .PHONY: gen-oapi
 gen-oapi:
-	go tool oapi-codegen --config ../../openapi/cfg.yaml ../../openapi/openapi.yaml
+	go tool oapi-codegen --config ../../openapi/cfg.yaml ../../openapi/openapi-bundled.yaml
 
 .PHONY: lint-oapi
 lint-oapi:

@@ -10,102 +10,27 @@ servers:
 tags:
   - name: users
 
+# API パスは openapi/paths 配下の path item ファイルを $ref で参照する。
 paths:
   /users/{id}:
-    get:
-      tags: [users]
-      summary: Get a user by ID
-      operationId: getUser
-      parameters:
-        - $ref: "#/components/parameters/UserID"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        default:
-          $ref: "#/components/responses/Error"
-
+    $ref: "./paths/user.yaml"
   /users:
-    post:
-      tags: [users]
-      summary: Create a user
-      operationId: createUser
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateUserRequest"
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        default:
-          $ref: "#/components/responses/Error"
+    $ref: "./paths/users.yaml"
 
+# 共有スキーマ / レスポンスは openapi/schemas 配下のファイルを登録する。
+# (redocly bundle がこの名前で components へ集約する。)
 components:
-  parameters:
-    UserID:
-      name: id
-      in: path
-      required: true
-      schema:
-        type: string
-
   schemas:
     User:
-      type: object
-      required: [id, email]
-      properties:
-        id:
-          type: string
-        email:
-          type: string
-          format: email
-
+      $ref: "./schemas/User.yaml"
     CreateUserRequest:
-      type: object
-      required: [email]
-      properties:
-        email:
-          type: string
-          format: email
-
+      $ref: "./schemas/CreateUserRequest.yaml"
     Error:
-      type: object
-      required: [code, message]
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-
+      $ref: "./schemas/Error.yaml"
   responses:
     BadRequest:
-      description: Bad Request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
+      $ref: "./schemas/responses/BadRequest.yaml"
     NotFound:
-      description: Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
+      $ref: "./schemas/responses/NotFound.yaml"
     Error:
-      description: Unexpected Error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
+      $ref: "./schemas/responses/Error.yaml"

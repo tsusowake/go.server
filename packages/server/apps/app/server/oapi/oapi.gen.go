@@ -38,9 +38,6 @@ type User struct {
 	Id    string              `json:"id"`
 }
 
-// UserID defines model for UserID.
-type UserID = string
-
 // BadRequest defines model for BadRequest.
 type BadRequest = Error
 
@@ -57,7 +54,7 @@ type ServerInterface interface {
 	CreateUser(ctx echo.Context) error
 	// Get a user by ID
 	// (GET /users/{id})
-	GetUser(ctx echo.Context, id UserID) error
+	GetUser(ctx echo.Context, id string) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -78,7 +75,7 @@ func (w *ServerInterfaceWrapper) CreateUser(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) GetUser(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "id" -------------
-	var id UserID
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
 	if err != nil {
@@ -202,7 +199,7 @@ func (response CreateUserdefaultJSONResponse) VisitCreateUserResponse(w http.Res
 }
 
 type GetUserRequestObject struct {
-	Id UserID `json:"id"`
+	Id string `json:"id"`
 }
 
 type GetUserResponseObject interface {
@@ -306,7 +303,7 @@ func (sh *strictHandler) CreateUser(ctx echo.Context) error {
 }
 
 // GetUser operation middleware
-func (sh *strictHandler) GetUser(ctx echo.Context, id UserID) error {
+func (sh *strictHandler) GetUser(ctx echo.Context, id string) error {
 	var request GetUserRequestObject
 
 	request.Id = id
@@ -335,16 +332,16 @@ func (sh *strictHandler) GetUser(ctx echo.Context, id UserID) error {
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"tFVNT9wwEP0r0bSHVkqTUDgg36C0aFWJokqc0B5MPNk1SmxjT1BXq/z3auywHxDEAfbm2M/vjd98ZA21",
-	"7Zw1aCiAWIOTXnZI6OPXTUA/u+CVNiDASVpCDkZ2CAK0ghw8PvTaowJBvsccQr3ETvINWjlGBfLaLGAY",
-	"BgYHZ03AyH0u1V986DEQf9XWEJq4lM61upakrSnvgzW8t6X97LEBAZ/KbdxlOg3lT++tT1IKQ+21YxIQ",
-	"rJU9iQ05JNzBVW8M/nNYE6psxORwZemX7Y06vPqVpSxJ8dkIZ7YfHiUhp3bHf+etQ0865QY7qVteNNZ3",
-	"kkCMO/mLrO5WwO2Imm9g9u4e633L94Vqq3CiWHLoMAS5mDp7JhkZtvgpbX7qO96Yc6W/GUfshtfez2Bt",
-	"Gss0+1k6u55lChttNG9kjfXZwhYB/SP67EtwWH9rtA/0teDANLVMu0WcXc8gh0f0IdFVxVFRccjWoZFO",
-	"g4DjoiqOIY/NGx9e9mFsb2dT8tmWWHszBWKnPsb+xkDnVq0+rGRfFuCw7yaPkufj4nt19GEBxLdNtEwK",
-	"TLF/J1X1GssmrHJnhEWuRvYtvX3tqWVzCH3XSb/aSGcy65PvJBeByyrlas7glLdyrdXAGgucyN0l0pi4",
-	"3UF+Ox3RFlKOg36Yv3C9Orjrf34nw0/edm4zPd9r9yXS6HV2t8pmF1OO84XYZcnB3rcgYEnkRFm2tpbt",
-	"0gYSp9VpFX0b76+ffo+JZ5gP/wMAAP//",
+	"tFRPT+M+EP0q0fx+h10pm4SFA8oN9g+qVmLRSpxQDyaetEaJbcYTtFWV774aO5QWijhAT3HG4/dm3ht7",
+	"DY3rvbNoOUC9BsLgnQ0Yf86V/oP3AwaWv8ZZRhuXyvvONIqNs+VdcFZioVlir2T1P2ELNfxXPkGXaTeU",
+	"P4gcwTiOOWgMDRkvIFALV/ZINuaQ8g7Oem3xr8eGUWdTTg6Xjn+6werDs186zhKV7E3pgvaNUDFeB6Qt",
+	"/T05j8QmeYO9Mp0sWke9YqinSA688gg1BCZjFxGZ8H4whBrqmylrvklzt3fY7Eq+S9Q4jfJ9BptDjyGo",
+	"xb69Z5QR4Sl/H7e0+o4eczD67TqMhvzV/iXZ2NYJzK5LZ1ezTGNrrJFA1jrKFq4ISA9I2afgsfnSGgr8",
+	"uZDCDHcC+5RxdjWDHB6QQoKriqOikpKdR6u8gRqOi6o4hhy84mVsvBwCUlx5l8wXWeLszTTUW/MBqUUM",
+	"fO706sNG9uUAjrtqMg0YA1vPxdfq6MMKiL3tuTKpMC36nVTVayibssqtJyxitWro+O1jj1c2hzD0vaLV",
+	"hjpT2ZB0Z7UIMlbJq7kkJ9/KtdGjcCxwj3cXyJNxXpHqkaPTN2sw0p+MAORgVS9TFCd2V/R8S8Dn4z5/",
+	"YUh1cEN+/0penLwt6uZhfa8TF8iTDdntKpt932eGHIgXMIk7UAc1LJl9XZada1S3dIHr0+q0AtFtOr9+",
+	"VD7hjPPxXwAAAP//",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

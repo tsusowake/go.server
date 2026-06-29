@@ -18,9 +18,15 @@ build-nocache:
 	docker compose -f compose.yaml build --no-cache
 
 # ---- code generation (schema-first) ----
+# openapi/ の分割ファイル (paths/ schemas/) を 1 ファイルへバンドル。
+# gen-oapi / gen-api はこのバンドル済み spec からコードを生成する。
+.PHONY: bundle
+bundle:
+	bun run bundle
+
 # Go の型 (oapi-codegen) を生成。packages/server を cwd にする必要がある。
 .PHONY: gen-oapi
-gen-oapi:
+gen-oapi: bundle
 	$(MAKE) -C $(SERVER_DIR) gen-oapi
 
 .PHONY: lint-oapi
@@ -29,10 +35,10 @@ lint-oapi:
 
 # TypeScript クライアント (web / admin) を orval で生成。
 .PHONY: gen-api
-gen-api:
+gen-api: bundle
 	bun run gen:api
 
-# OpenAPI から全コードを再生成。
+# OpenAPI から全コードを再生成 (bundle は 1 回だけ実行される)。
 .PHONY: gen
 gen: gen-oapi gen-api
 

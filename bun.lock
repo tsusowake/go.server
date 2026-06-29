@@ -5,6 +5,7 @@
     "": {
       "name": "go.server",
       "devDependencies": {
+        "@redocly/cli": "^2.35.1",
         "orval": "^7.13.2",
       },
     },
@@ -241,6 +242,8 @@
     "@react-router/node": ["@react-router/node@8.0.0", "", { "dependencies": { "@remix-run/node-fetch-server": "^0.13.3" }, "peerDependencies": { "react-router": "8.0.0", "typescript": "^5.1.0 || ^6.0.0" }, "optionalPeers": ["typescript"] }, "sha512-v/WipSNRa6N+YBIxvawjSRT6NA2f3m5UvkAztLgAKAeIqGhlEMTdAQU4TzU/T7/EkJ7jws1dvRKLLHzq3F6pOQ=="],
 
     "@react-router/serve": ["@react-router/serve@8.0.0", "", { "dependencies": { "@react-router/express": "8.0.0", "@react-router/node": "8.0.0", "@remix-run/node-fetch-server": "^0.13.3", "compression": "^1.8.1", "express": "^5.2.1", "get-port": "7.2.0", "morgan": "^1.10.1", "source-map-support": "^0.5.21" }, "peerDependencies": { "react-router": "8.0.0" }, "bin": { "react-router-serve": "bin.cjs" } }, "sha512-8nDp5pQCb3eY47/BabfH3SdMTWJIz69YmNWXGi6IWe9AE+qKdwyWNUc6aY1Jx8wnVQ833mj0v0fkpl+1hkBVxg=="],
+
+    "@redocly/cli": ["@redocly/cli@2.35.1", "", { "bin": { "openapi": "bin/cli.js", "redocly": "bin/cli.js" } }, "sha512-8XcUIR6bCI4KmVg6RJyzL3peZhld/tu7oO8WGVaHp43byhcds6ProHlfqEFa+dZA+qA+dUMebgRELVOe5AW4Lg=="],
 
     "@remix-run/node-fetch-server": ["@remix-run/node-fetch-server@0.13.3", "", {}, "sha512-UfjOXed/DQteaM5VyTfqTeGpHwyL2J5aoRGY6cydip4tt1ehNNeSwuXCC7AEGE0RWBs/7bgKxYkL/B/+UDe4AA=="],
 

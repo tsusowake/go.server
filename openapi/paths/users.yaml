@@ -1,0 +1,22 @@
+# /users
+post:
+  tags: [users]
+  summary: Create a user
+  operationId: createUser
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../schemas/CreateUserRequest.yaml"
+  responses:
+    "201":
+      description: Created
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/User.yaml"
+    "400":
+      $ref: "../schemas/responses/BadRequest.yaml"
+    default:
+      $ref: "../schemas/responses/Error.yaml"

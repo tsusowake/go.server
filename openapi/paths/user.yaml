@@ -1,0 +1,22 @@
+# /users/{id}
+get:
+  tags: [users]
+  summary: Get a user by ID
+  operationId: getUser
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/User.yaml"
+    "404":
+      $ref: "../schemas/responses/NotFound.yaml"
+    default:
+      $ref: "../schemas/responses/Error.yaml"
