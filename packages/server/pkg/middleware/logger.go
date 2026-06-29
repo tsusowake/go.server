@@ -3,8 +3,8 @@ package middleware
 import (
 	"log/slog"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 
 	"github.com/tsusowake/go.server/pkg/context"
 )
@@ -13,9 +13,8 @@ func NewLoggerMiddleware() echo.MiddlewareFunc {
 	return middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogStatus:   true,
 		LogURI:      true,
-		LogError:    true,
 		HandleError: true,
-		BeforeNextFunc: func(c echo.Context) {
+		BeforeNextFunc: func(c *echo.Context) {
 			slog.LogAttrs(
 				c.Request().Context(),
 				slog.LevelInfo,
@@ -27,7 +26,7 @@ func NewLoggerMiddleware() echo.MiddlewareFunc {
 				slog.String("trace_id", context.GetTraceIDFrom(c.Request().Context())),
 			)
 		},
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+		LogValuesFunc: func(c *echo.Context, v middleware.RequestLoggerValues) error {
 			if v.Error == nil {
 				slog.LogAttrs(
 					c.Request().Context(),

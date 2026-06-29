@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/go-playground/validator/v10"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/morikuni/failure/v2"
 
 	pkgerror "github.com/tsusowake/go.server/pkg/error"
@@ -29,7 +29,7 @@ type BaseParams struct{}
 
 func ValidateMiddleware[T any]() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			type Params struct {
 				BaseParams
 				Request T

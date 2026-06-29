@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
@@ -51,10 +51,10 @@ type CreateUserJSONRequestBody = CreateUserRequest
 type ServerInterface interface {
 	// Create a user
 	// (POST /users)
-	CreateUser(ctx echo.Context) error
+	CreateUser(ctx *echo.Context) error
 	// Get a user by ID
 	// (GET /users/{id})
-	GetUser(ctx echo.Context, id string) error
+	GetUser(ctx *echo.Context, id string) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -63,7 +63,7 @@ type ServerInterfaceWrapper struct {
 }
 
 // CreateUser converts echo context to params.
-func (w *ServerInterfaceWrapper) CreateUser(ctx echo.Context) error {
+func (w *ServerInterfaceWrapper) CreateUser(ctx *echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshaled arguments
@@ -72,7 +72,7 @@ func (w *ServerInterfaceWrapper) CreateUser(ctx echo.Context) error {
 }
 
 // GetUser converts echo context to params.
-func (w *ServerInterfaceWrapper) GetUser(ctx echo.Context) error {
+func (w *ServerInterfaceWrapper) GetUser(ctx *echo.Context) error {
 	var err error
 	// ------------- Path parameter "id" -------------
 	var id string
@@ -91,15 +91,15 @@ func (w *ServerInterfaceWrapper) GetUser(ctx echo.Context) error {
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
 type EchoRouter interface {
-	CONNECT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	DELETE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	GET(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	HEAD(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	OPTIONS(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	PATCH(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	POST(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	PUT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
-	TRACE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	CONNECT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) echo.RouteInfo
+	DELETE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) echo.RouteInfo
+	GET(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) echo.RouteInfo
+	HEAD(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) echo.RouteInfo
+	OPTIONS(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) echo.RouteInfo
+	PATCH(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) echo.RouteInfo
+	POST(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) echo.RouteInfo
+	PUT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) echo.RouteInfo
+	TRACE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) echo.RouteInfo
 }
 
 // RegisterHandlersOptions configures RegisterHandlersWithOptions.
@@ -261,7 +261,7 @@ type StrictServerInterface interface {
 	GetUser(ctx context.Context, request GetUserRequestObject) (GetUserResponseObject, error)
 }
 
-type StrictHandlerFunc func(ctx echo.Context, request any) (any, error)
+type StrictHandlerFunc func(ctx *echo.Context, request any) (any, error)
 type StrictMiddlewareFunc func(f StrictHandlerFunc, operationID string) StrictHandlerFunc
 
 func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
@@ -274,7 +274,7 @@ type strictHandler struct {
 }
 
 // CreateUser operation middleware
-func (sh *strictHandler) CreateUser(ctx echo.Context) error {
+func (sh *strictHandler) CreateUser(ctx *echo.Context) error {
 	var request CreateUserRequestObject
 
 	var body CreateUserJSONRequestBody
@@ -283,7 +283,7 @@ func (sh *strictHandler) CreateUser(ctx echo.Context) error {
 	}
 	request.Body = &body
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+	handler := func(ctx *echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.CreateUser(ctx.Request().Context(), request.(CreateUserRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -303,12 +303,12 @@ func (sh *strictHandler) CreateUser(ctx echo.Context) error {
 }
 
 // GetUser operation middleware
-func (sh *strictHandler) GetUser(ctx echo.Context, id string) error {
+func (sh *strictHandler) GetUser(ctx *echo.Context, id string) error {
 	var request GetUserRequestObject
 
 	request.Id = id
 
-	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+	handler := func(ctx *echo.Context, request interface{}) (interface{}, error) {
 		return sh.ssi.GetUser(ctx.Request().Context(), request.(GetUserRequestObject))
 	}
 	for _, middleware := range sh.middlewares {

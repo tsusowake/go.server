@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/morikuni/failure/v2"
 
 	"github.com/tsusowake/go.server/pkg/context"
@@ -23,8 +23,9 @@ type Response struct {
 	Error *ErrorResponse `json:"error,omitempty"`
 }
 
-func ErrorHandler(e error, c echo.Context) {
-	if e != nil && !c.Response().Committed {
+func ErrorHandler(c *echo.Context, e error) {
+	resp, _ := echo.UnwrapResponse(c.Response())
+	if e != nil && (resp == nil || !resp.Committed) {
 		var apiError pkgerror.APIError
 		var err error
 
@@ -59,7 +60,7 @@ func ErrorHandler(e error, c echo.Context) {
 	}
 }
 
-func logError(c echo.Context, e error) {
+func logError(c *echo.Context, e error) {
 	slog.ErrorContext(
 		c.Request().Context(),
 		"an error occurred",
@@ -71,6 +72,6 @@ func logError(c echo.Context, e error) {
 	)
 }
 
-func respondWithJSON(c echo.Context, statusCode int, response *Response) error {
+func respondWithJSON(c *echo.Context, statusCode int, response *Response) error {
 	return failure.Wrap(c.JSON(statusCode, response))
 }

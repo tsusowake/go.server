@@ -11,9 +11,8 @@ import (
 
 	"github.com/caarlos0/env/v11"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/morikuni/failure/v2"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/tsusowake/go.server/apps/app/server/handlers"
 	"github.com/tsusowake/go.server/config"
@@ -99,39 +98,15 @@ func runServer(ctx context.Context) error {
 	base := handlers.NewBaseHandler(domain.NewRepository())
 	handlers.NewAPI(base).Register(e)
 
-	// Start server
-	eg, egCtx := errgroup.WithContext(ctx)
-	eg.Go(func() error {
-		go func() {
-			<-ctx.Done()
-			if stopErr := stopServer(ctx, e); stopErr != nil {
-				slog.ErrorContext(ctx, "failed to shutdown echo server", slog.String("error", err.Error()))
-			}
-		}()
-		return startServer(egCtx, e)
-	})
-
-	if egErr := eg.Wait(); egErr != nil && !errors.Is(egErr, context.Canceled) {
-		return failure.Wrap(egErr, failure.Message("server encountered an error"))
-	}
-	return nil
-}
-
-func startServer(ctx context.Context, e *echo.Echo) error {
+	// Start server. StartConfig.Start blocks until ctx is cancelled, then
+	// gracefully shuts the server down within GracefulTimeout.
 	slog.InfoContext(ctx, "start server")
-	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		return failure.Wrap(err, failure.Message("failed to start server"))
+	sc := echo.StartConfig{
+		Address:         ":8080",
+		GracefulTimeout: 10 * time.Second,
 	}
-	return nil
-}
-
-func stopServer(ctx context.Context, e *echo.Echo) error {
-	// graceful shutdown
-	slog.InfoContext(ctx, "stop server")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := e.Shutdown(ctx); err != nil {
-		return failure.Wrap(err, failure.Message("failed to shutdown server"))
+	if err := sc.Start(ctx, e); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return failure.Wrap(err, failure.Message("server encountered an error"))
 	}
 	slog.InfoContext(ctx, "server stopped")
 	return nil
