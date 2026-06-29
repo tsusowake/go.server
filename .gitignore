@@ -3,3 +3,9 @@
 .data/
 .output/
 .vscode/
+
+# Node / bun (frontend workspaces)
+node_modules/
+.env
+packages/*/build/
+packages/*/.react-router/

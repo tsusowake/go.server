@@ -1,23 +1,14 @@
-.PHONY: build
-build:
-	go build -o .dist/app apps/app/main.go
+# go.server monorepo — root tasks.
+#
+# Layout:
+#   openapi/            … 単一スキーマ (source of truth)
+#   packages/server     … Go API サーバー
+#   packages/web        … 一般ユーザー向け Web (React Router v7 framework)
+#   packages/admin-console … 管理者向け Web
 
-.PHONY: build
-build-race:
-	go build -race -o .dist/app-race main.go
+SERVER_DIR := packages/server
 
-.PHONY: clean
-clean:
-	rm -rf .dist
-
-.PHONY: lint
-lint:
-	golangci-lint run ./...
-
-.PHONY: test
-test:
-	go test -cover ./...
-
+# ---- infra (docker compose) ----
 .PHONY: run
 run:
 	docker compose -f compose.yaml up -d
@@ -26,23 +17,55 @@ run:
 build-nocache:
 	docker compose -f compose.yaml build --no-cache
 
-.phony: dump-schema
-dump-schema:
-	psqldef -U user -Wpassword -h localhost -p 5432 yunne --export >sqlc/schema.sql
-
-.phony: gen-sqlc
-gen-sqlc:
-	docker pull sqlc/sqlc
-	docker run --rm -v .:/src -w /src sqlc/sqlc generate
-
-.phony: clean-gen-sqlc
-clean-gen-sqlc:
-	rm -rf database/generated
-
+# ---- code generation (schema-first) ----
+# Go の型 (oapi-codegen) を生成。packages/server を cwd にする必要がある。
 .PHONY: gen-oapi
 gen-oapi:
-	go tool oapi-codegen --config openapi/cfg.yaml openapi/openapi.yaml
+	$(MAKE) -C $(SERVER_DIR) gen-oapi
 
 .PHONY: lint-oapi
 lint-oapi:
-	@docker run --rm -v $(PWD):/spec redocly/cli lint /spec/openapi/openapi.yaml
+	$(MAKE) -C $(SERVER_DIR) lint-oapi
+
+# TypeScript クライアント (web / admin) を orval で生成。
+.PHONY: gen-api
+gen-api:
+	bun run gen:api
+
+# OpenAPI から全コードを再生成。
+.PHONY: gen
+gen: gen-oapi gen-api
+
+# ---- server ----
+.PHONY: build-server
+build-server:
+	$(MAKE) -C $(SERVER_DIR) build
+
+.PHONY: test-server
+test-server:
+	$(MAKE) -C $(SERVER_DIR) test
+
+# ---- frontend (bun workspaces) ----
+.PHONY: install
+install:
+	bun install
+
+.PHONY: dev-web
+dev-web:
+	bun run dev:web
+
+.PHONY: dev-admin
+dev-admin:
+	bun run dev:admin
+
+.PHONY: build-web
+build-web:
+	bun run build:web
+
+.PHONY: build-admin
+build-admin:
+	bun run build:admin
+
+.PHONY: typecheck
+typecheck:
+	bun run typecheck
